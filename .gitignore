@@ -127,3 +127,21 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+Belegarbeit/.DS_Store
+*.alg
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.code
+*.idx
+*.lof
+*.lot
+*.out
+Belegarbeit/ausarbeitung.pdf
+*.xml
+*.gz
+*.thm
+*.toc
+*.wrt
+Belegarbeit/content/.DS_Store

@@ -1,0 +1,294 @@
+% Dieses Dokument muss mit PDFLatex gesetzt werden
+% Vorteil: Grafiken koennen als jpg, png, ... verwendet werden
+%          und die Links im Dokument sind auch gleich richtig
+%
+%Ermöglicht \\ bei der Titelseite (z.B. bei supervisor)
+%Siehe https://github.com/latextemplates/uni-stuttgart-cs-cover/issues/4
+\RequirePackage{kvoptions-patch}
+
+%English:
+%\let\ifdeutsch\iffalse
+%\let\ifenglisch\iftrue
+
+%German:
+\let\ifdeutsch\iftrue
+\let\ifenglisch\iffalse
+
+%
+\ifenglisch
+	\PassOptionsToClass{numbers=noenddot}{scrbook}
+\else
+	%()Aus scrguide.pdf - der Dokumentation von KOMA-Script)
+	%Nach DUDEN steht in Gliederungen, in denen ausschließlich arabische Ziffern für die Nummerierung
+	%verwendet werden, am Ende der Gliederungsnummern kein abschließender Punkt
+	%(siehe [DUD96, R3]). Wird hingegen innerhalb der Gliederung auch mit römischen Zahlen
+	%oder Groß- oder Kleinbuchstaben gearbeitet, so steht am Ende aller Gliederungsnummern ein
+	%abschließender Punkt (siehe [DUD96, R4])
+	\PassOptionsToClass{numbers=autoendperiod}{scrbook}
+\fi
+
+%Warns about outdated packages and missing caption delcarations
+%See https://www.ctan.org/pkg/nag
+\RequirePackage[l2tabu, orthodox]{nag}
+
+%Neue deutsche Trennmuster
+%Siehe http://www.ctan.org/pkg/dehyph-exptl und http://projekte.dante.de/Trennmuster/WebHome
+%Nur für pdflatex, nicht für lualatex
+\RequirePackage{ifluatex}
+\ifluatex
+%do not load anything
+\else
+	\ifdeutsch
+		\RequirePackage[ngerman=ngerman-x-latest]{hyphsubst}
+	\fi
+\fi
+
+\documentclass[
+               fontsize=12pt, %Default: 11pt, bei Linux Libertine zu klein zum Lesen
+% BEGINN: Optionen für typearea
+               paper=a4,
+               oneside,  % fuer die Betrachtung am Schirm ungeschickt
+               BCOR=3mm, % Bindekorrektur
+               DIV=13,   % je höher der DIV-Wert, desto mehr geht auf eine Seite. Gute werde sind zwischen DIV=12 und DIV=15
+               headinclude=true,
+               footinclude=false,
+% ENDE: Optionen für typearea
+%               titlepage,
+               bibliography=totoc,
+%               idxtotoc,   %Index ins Inhaltsverzeichnis
+%                liststotoc, %List of X ins Inhaltsverzeichnis, mit liststotocnumbered werden die Abbildungsverzeichnisse nummeriert
+               headsepline,
+               %cleardoublepage=empty,
+               parskip=half,
+               draft    % um zu sehen, wo noch nachgebessert werden muss - wichtig, da Bindungskorrektur mit drin
+%               final,   % ACHTUNG! - in pagestyle.tex noch Seitenstil anpassen
+%Kein Punkt nach letzter Gliederungsebene               
+			numbers=noenddot
+               ]{scrbook}
+
+
+\input{preambel/packages_and_options}
+
+%Der untere Rand darf "flattern"
+\raggedbottom
+
+%%%
+% Wie tief wird das Inhaltsverzeichnis aufgeschlüsselt
+% 0 --\chapter
+% 1 --\section % fuer kuerzeres Inhaltsverzeichnis verwenden - oder minitoc benutzen
+% 2 --\subsection
+% 3 --\subsubsection
+% 4 --\paragraph
+\setcounter{tocdepth}{1}
+%
+%%%
+
+\makeindex
+
+%Angaben in die PDF-Infos uebernehmen
+\makeatletter
+\hypersetup{
+            pdftitle={Entwicklung eines Business-Intelligence-Systems für die Arbeitszeiterfassung im Hochschulbereich}, %Titel der Arbeit
+            pdfauthor={Henry Haustein}, %Author
+            pdfkeywords={}, % CR-Klassifikation und ggf. weitere Stichworte
+            pdfsubject={}
+}
+\makeatother
+
+\input{content/abkuerzungen}
+
+\begin{document}
+
+%tex4ht-Konvertierung verschönern
+%\iftex4ht
+% tell tex4ht to create picures also for formulas starting with '$'
+% WARNING: a tex4ht run now takes forever!
+%\Configure{$}{\PicMath}{\EndPicMath}{} 
+%$ % <- syntax highlighting fix for emacs
+%\Css{body {text-align:justify;}}
+
+%conversion of .pdf to .png
+%\Configure{graphics*}  
+%         {pdf}  
+%         {\Needs{"convert \csname Gin@base\endcsname.pdf  
+%                               \csname Gin@base\endcsname.png"}%  
+%          \Picture[pict]{\csname Gin@base\endcsname.png}%  
+%         }  
+%\fi
+
+%Tipp von http://goemonx.blogspot.de/2012/01/pdflatex-ligaturen-und-copynpaste.html
+%siehe auch http://tex.stackexchange.com/questions/4397/make-ligatures-in-linux-libertine-copyable-and-searchable
+%
+%ONLY WORKS ON MiKTeX
+%On other systems, download glyphtounicode.tex from http://pdftex.sarovar.org/misc/
+%
+%\input glyphtounicode.tex
+%\pdfgentounicode=1
+
+%\VerbatimFootnotes %verbatim text in Fußnoten erlauben. Geht normalerweise nicht.
+
+\input{macros/commands}
+%\pagenumbering{arabic}
+
+% ================= Introduction ===========================
+
+\Titelblatt
+%\litzf
+\pagenumbering{gobble}
+%Eigener Seitenstil fuer die Kurzfassung und das Inhaltsverzeichnis
+\deftripstyle{preamble}{}{}{}{}{}{\pagemark}
+%Doku zu deftripstyle: scrguide.pdf
+\pagestyle{preamble}
+\renewcommand*{\chapterpagestyle}{preamble}
+
+%Kurzfassung / abstract
+%auch im Stil vom Inhaltsverzeichnis
+\section*{Abstract}
+This paper shall act as a collection of guidlines in order to support scientific writing for the purpose of creating term papers, a master as well as a bachelor or diploma thesis. Nevertheless this paper does not act as a substitue for dealing with literature about scientific writing and the process of claiming knowledge in that particular area. Apart from freedom of science there are certain formal requirements stated within this guide, that need to be fullfilled in order for the paper to be accepted at the chair of Business Intelligence Research.
+
+\cleardoublepage
+
+
+% BEGIN: Verzeichnisse
+
+%\iftex4ht
+%\else
+%\microtypesetup{protrusion=false}
+%\fi
+
+%%%
+% Literaturverzeichnis ins TOC mit aufnehmen, aber nur wenn nichts anderes mehr hilft!
+% \addcontentsline{toc}{chapter}{Literaturverzeichnis}
+%
+% oder zB
+%\addcontentsline{toc}{section}{Abkürzungsverzeichnis}
+%
+%%%
+
+%Produce table of contents
+%
+%In case you have trouble with headings reaching into the page numbers, enable the following three lines.
+%Hint by http://golatex.de/inhaltsverzeichnis-schreibt-ueber-rand-t3106.html
+%
+%\makeatletter
+%\renewcommand{\@pnumwidth}{2em}
+%\makeatother
+%
+
+%Seitennummerierung in römischen Zahlen Für alles vor dem Text
+\setcounter{page}{1} 
+\pagenumbering{Roman}
+
+\tableofcontents
+
+% Bei einem ungünstigen Seitenumbruch im Inhaltsverzeichnis, kann dieser mit
+% \addtocontents{toc}{\protect\newpage}
+% an der passenden Stelle im Fließtext erzwungen werden.
+
+\listoffigures
+\ifdeutsch
+\addcontentsline{toc}{chapter}{\normalsize{Abbildungsverzeichnis}}
+\else
+\addcontentsline{toc}{chapter}{\normalsize{List of Figures}}
+\fi
+
+\listoftables
+\ifdeutsch
+\addcontentsline{toc}{chapter}{\normalsize{Tabellenverzeichnis}}
+\else
+\addcontentsline{toc}{chapter}{\normalsize{List of Tables}}
+\fi
+
+%Wird nur bei Verwendung von der lstlisting-Umgebung mit dem "caption"-Parameter benoetigt
+%\lstlistoflistings 
+%ansonsten:
+\ifdeutsch
+\listof{Listing}{Verzeichnis der Listings}
+\addcontentsline{toc}{chapter}{\normalsize{Verzeichnis der Listings}}
+\else
+\listof{Listing}{List of Listings}
+\addcontentsline{toc}{chapter}{\normalsize{List of Listings}}
+\fi
+
+%mittels \newfloat wurde die Algorithmus-Gleitumgebung definiert.
+%Mit folgendem Befehl werden alle floats dieses Typs ausgegeben
+\ifdeutsch
+\listof{Algorithmus}{Verzeichnis der Algorithmen}
+\addcontentsline{toc}{chapter}{\normalsize{Verzeichnis der Algorithmen}}
+\else
+\listof{Algorithmus}{List of Algorithms}
+\addcontentsline{toc}{chapter}{\normalsize{List of Algorithms}}
+\fi
+%\listofalgorithms %Ist nur für Algorithmen, die mittels \begin{algorithm} umschlossen werden, nötig
+
+% Abkürzungsverzeichnis
+\printnoidxglossaries
+\ifdeutsch
+\addcontentsline{toc}{chapter}{\normalsize{Abkürzungsverzeichnis}}
+\else
+\addcontentsline{toc}{chapter}{\normalsize{List of Abbreviations}}
+\fi
+
+\iftex4ht
+\else
+%Optischen Randausgleich und Grauwertkorrektur wieder aktivieren
+\microtypesetup{protrusion=true}
+\fi
+
+% END: Verzeichnisse
+
+
+\renewcommand*{\chapterpagestyle}{scrplain}
+\pagestyle{scrheadings}
+\input{preambel/pagestyle}
+
+% ====== Main Part ===============
+%KS: Seitennummerierung des Hauptteils
+\mainmatter
+%KS: Nummerierung beginnt beim Hauptteil neu mit arabischen Ziffern
+\pagenumbering{arabic}
+\setcounter{page}{1}
+%
+%
+% ** Hier wird der Text eingebunden **
+%
+\input{content/allgemeine_Angaben}
+%\input{...weitere Kapitel...}
+
+%KS: Literaturverzeichnis nach dem Haupt-Textteil
+\printbibliography
+\clearpage
+%
+%
+% ======== Appendix ==================
+
+%Seitennummerierung in römischen Zahlen - Anpassen auf die jeweilige Seitenzahl+1 vor dem Haupt-Textteil
+\pagenumbering{Roman}
+\setcounter{page}{11}
+\appendix
+\renewcommand{\appendixtocname}{Anhang}
+\renewcommand{\appendixname}{Anhang}
+\renewcommand{\appendixpagename}{Anhang}
+\appendixpage
+%%\begin{appendices}
+\begin{appendix}
+%\renewcommand{\thesection}{\Alph{section}}
+\input{content/eides}
+\end{appendix}
+%%\end{appendices}
+\clearpage
+
+%\printindex
+
+
+
+%\ifdeutsch
+%Alle URLs wurden zuletzt am 17.\,03.\,2008 geprüft.
+%\else
+%All links were last followed on March 17, 2008.
+%\fi
+
+\pagestyle{empty}
+\renewcommand*{\chapterpagestyle}{empty}
+%\Versicherung
+\end{document}

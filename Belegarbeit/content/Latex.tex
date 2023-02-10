@@ -1,0 +1,285 @@
+\section{\LaTeX\index{\LaTeX}}
+\label{chap:latex}
+\TeX \ ist ein von D.E. Knuth entwickelter Textformatierer, den den Text einer Input-Datei nach bestimmten Regeln setzt und das Ergebnis als geräteunabhängige Datei ausgibt. Mit Hilfe von so genannten Makros oder Befehlen lässt sich das Ergebnis beeinflussen -- und der Text gestalten. Da die von \TeX \ bereitgestellten Befehle für viele Textersteller zu elementar sind, wird gern auf eine Sammlung zusätzlicher Befehle zurückgegriffen, die mit dem Kürzel \LaTeX \ bezeichnet wird. Inzwischen wird die Sammlung \LaTeX2e \ verwendet.
+
+
+Bei \LaTeX \ handelt es sich um ein Textsatzsystem (WYTIWYG -- What you type is what you get) im Gegensatz zu dem Textprogramm MS-WORD (WYSIWYG -- What you see is what you get), bei dem -- ähnlich einer Programmiersprache -- auch Formatierungsbefehle manuell eingegeben werden. Nach einer Kompilierung der Datei sind dann Inhalt und Formatierung in einem separaten Programm zu sehen. Die Vorteile gegenüber Word sind:
+\begin{itemize}
+\item Erzeugung von (optisch) hochwertigen Dokumenten,
+\item Formatierung in einem eigenen Vorgang,
+\item Konzentration auf Inhalt und Struktur des Textes und
+\item Optimierung der ganzen Seite und nicht nur einer Zeile.
+\end{itemize}
+
+Aufgrund der benötigten Einarbeitungszeit in \LaTeX \ sollte nicht erst bei der Anfertigung einer Arbeit mit der Einarbeitung in \LaTeX \ begonnen werden. \\
+
+Die am Lehrstuhl erhältliche \LaTeX-Vorlage\index{\LaTeX-Vorlage} für Seminar- und Abschlussarbeiten enthält einige Modifikationen, z.~B. neue Argumente und Befehle, die im Folgenden näher beschrieben werden. Weiterhin wird ein lauffähiges Minimalbeispiel erläutert und es werden schon integrierte Packages aufgeführt.\\Bei der \textbf{\LaTeX-Vorlage}\index{\LaTeX-Vorlage} werden die jeweiligen Verzeichnisse\index{Verzeichnis} bei Benutzung der entsprechenden Argumente (siehe \kapitelverweis{chap:argumente}) automatisch integriert. Die Seitennummerierung\index{Seitennummerierung} ist bei Verwendung der bir-Klasse voreingestellt.
+
+\subsection{Erläuterungen zur Klassendatei \glqq bir.cls\index{\LaTeX!Klasse}\grqq}
+\label{chap:Klassendatei}
+
+Die zur Verfügung gestellte Klassendatei definiert den Aufbau des Dokumentes. Um eine Klassendatei innerhalb eines Dokumentes verwenden zu können, muss sie eingebunden werden. Dies erfolgt mit Hilfe des folgenden Befehls:
+
+\verb"\documentclass["...Liste mit Argumenten...\verb"]{bir}"
+
+
+\subsection{Argumente}
+\label{chap:argumente}
+
+Die folgenden Argumente\index{\LaTeX!Argumente} wurden in der Klasse definiert, um den Aufbau des Dokumentes zu beeinflussen:
+\begin{itemize}
+  \item{Angabe des Studiengangs(gilt für Diplom-, Bachelor- und Masterstudiengang:}
+
+    \begin{itemize}
+
+        \item{\verb"bwl"} -- Abschluss Wirtschaftswissenschaften
+
+        \item{\verb"vwl"} -- Abschluss Volkswirtschaft
+
+        \item{\verb"winf"} -- Abschluss Wirtschaftsinformatik
+
+        \item{\verb"wing"} -- Abschluss Wirtschaftsingenieur
+
+        \item{\verb"wipaed"} -- Abschluss Wirtschaftspädagogik
+        
+
+    \end{itemize}
+
+  \item {Art des Dokumentes:}
+
+    \begin{itemize}
+
+        \item{\verb"diplom"} -- angepasste Vorlage für Diplomarbeiten
+
+	\item{\verb"bachelor"} -- angepasste Vorlage für Bachelorarbeiten
+
+	\item{\verb"master"} -- angepasste Vorlage für Masterarbeiten
+
+        \item{\verb"studien"} -- angepasste Vorlage für Studienarbeiten
+
+        \item{\verb"hauptseminar"} -- angepasste Vorlage für Hauptseminare
+
+        \item{\verb"projektseminar"} -- angepasste Vorlage für Projektseminare
+
+            \end{itemize}
+
+  \item{\verb"english"} -- Umstellung der Sprache von Deutsch auf Englisch
+
+  \item{\verb"hyperref"} -- ermöglicht Links inner- und außerhalb des Dokumentes
+
+  \item{\verb"ind"} -- Erzeugung eines Index: Jeder Eintrag ist an der entsprechenden Stelle mit dem Befehl
+      \verb"\index{Indexeintrag}" zu kennzeichnen.
+
+  \item{\verb"glo"} -- Erzeugung eines Glossars: Jeder Eintrag ist an der entsprechenden Stelle mit dem Befehl
+      \verb"\glossary{name={Glossareintrag},description={Beschreibung}}" zu kennzeichnen.
+
+  \item{\verb"loa"} -- Erzeugung eines Abkürzungsverzeichnis: Jede Abkürzung ist an der entsprechenden Stelle mit
+      dem Befehl \verb"\abbrev{Abkürzung}{Beschreibung}" zu kennzeichnen. Zusätzlich zu dem Argument \verb"loa" muss die Option \verb"ind" geladen werden.
+
+   \item{\verb"toc"} -- Erzeugung eines Inhaltsverzeichnisses
+
+   \item{\verb"lof"} -- Erzeugung eines Abbildungsverzeichnisses
+
+   \item{\verb"lot"} -- Erzeugung eines Tabellenverzeichnisses
+
+   \item{\verb"nocopyright"} -- Keine Eidesstattliche Erklärung
+
+   \item{\verb"nolabel"} -- Keine Labels (Angaben) auf dem Deckblatt
+
+   \item{\verb"titelseite"} -- Erzeugt eine vordefinierte Titelseite gemäß BIR
+
+   \item{\verb"standardfont"} -- Standard \LaTeX-Font
+
+   \item{\verb"male"} -- für männliche Autoren (Standard weiblich)
+
+   \item{\verb"mehrereautoren"} -- Für den Fall, dass eine Arbeit von mehreren Autoren verfasst wird, ändert dieses
+       Argument die Darstellung der Autoren bei der Auflistung auf dem Deckblatt und der Eidesstattlichen
+       Erklärung.
+	 
+	 \item{\verb"zf"} -- fügt eine Zusammnefassung ein, die mit dem optionalen Befehl \verb"'\zusammenfassung{...}" (s. u.) vor dem Hauptdokument eingefügt werden muss
+       
+\end{itemize}
+Die einzelnen Argumente werden mit Semikolons voneinander getrennt (siehe dazu auch das Beispiel in
+\kapitelverweis{chap:beispieldokument}).
+
+\subsubsection{Befehle}
+\label{chap:Befehle}
+
+Die folgenden -- teilweise -- zwingenden Befehle\index{\LaTeX!Befehle} geben autorenspezifische Informationen an:
+
+\begin{description}
+
+  \item{\verb"\title{...}"} -- Titel der Arbeit (inklusive Untertitel)
+
+  \item{\verb"\fakultaet{...}"} -- Bezeichnung der Fakultät, an der die Arbeit eingereicht wird
+
+  \item{\verb"\professurinstitut{...}"} -- Name des Lehrstuhls/des Instituts
+
+  \item{\verb"\author{...}"} -- Name des Autors/der Autoren: Bei mehreren Autoren ist jeder Autor mit \verb"\\" zu
+      trennen
+
+  \item{\verb"\matno{...}"} -- Matrikelnummer des Autors
+
+  \item{\verb"\professor{...}"} -- Name des Erstprüfers (Angabe mit vollem Titel)
+
+  \item{\verb"\betreuer{...}"} -- Name des Betreuers (Angabe mit vollem Titel)
+
+  \item{\verb"\bearbeitungszeitraum{...}"} -- Zeitraum der Bearbeitung
+
+\end{description}
+
+\textbf{optional:}
+
+\begin{description}
+
+  \item{\verb"\zusammenfassung{...}"} -- fügt eine Zusammenfassung direkt hinter der Titelseite ein.
+
+\end{description}
+
+Die folgenden Befehle dienen der vereinfachten Referenzierung, gelten aber nur bei einer \textbf{deutschsprachigen} Arbeit (also nicht bei Argument \verb"english"):
+
+\begin{description}
+
+  \item{\verb"\kapitelverweis"} -- Verweis/Referenzierung auf ein Kapitel (ähnlich \verb"\ref{...}", aber mit der
+      Bezeichnung \textbf{Kapitel} im Link vorangestellt)
+
+  \item{\verb"\abschnittsverweis"} -- Verweis/Referenzierung auf ein Kapitel (ähnlich \verb"\ref{...}", aber mit
+      der Bezeichnung \textbf{Abschnitt} im Link vorangestellt)
+
+  \item{\verb"\abbildungsverweis"} -- Verweis/Referenzierung auf ein Kapitel (ähnlich \verb"\ref{...}", aber mit
+      der Bezeichnung \textbf{Abbildung} im Link vorangestellt)
+
+  \item{\verb"\tabellenverweis"} -- Verweis/Referenzierung auf ein Kapitel (ähnlich \verb"\ref{...}", aber mit
+      der Bezeichnung \textbf{Tabelle} im Link vorangestellt)
+
+  \item{\verb"\fragenverweis"} -- Verweis/Referenzierung auf ein Kapitel (ähnlich \verb"\ref{...}", aber mit
+      der Bezeichnung \textbf{Fragestellung} im Link vorangestellt)
+
+  \item{\verb"\abbildung{"Optionen\verb"}{"Dateiname\verb"}{"Beschriftung\verb"}{"Quellenzusatz mit	führendem
+      Leerzeichen, Klammer und Referenz\verb"}{"Labelname\verb"}"} - erzeugt automatisch eine
+      Abbildungs-/Figure-Umgebung mit allen relevanten Angaben.\\Beispiel.:
+      \begin{verbatim}
+      \abbildung{width=\textwidth}{1-02_KonzeptionellerRahmenProdMgmt}
+      {Konzeptioneller Rahmen des Produktionsmanagements}
+      { (vgl. \cite{zaepfel:1988}, S.~75)}
+      {img:RahmenProdMgmt}
+      \end{verbatim}.
+
+ \end{description}
+
+Die folgenden Befehle dienen der vereinfachten Referenzierung, gelten aber nur bei einer \textbf{englischsprachigen} Arbeit (also bei Argument \verb"english"):
+
+\begin{description}
+
+  \item{\verb"\chapterref"} -- Verweis/Referenzierung auf ein Kapitel (ähnlich \verb"\ref{...}", aber mit der
+      Bezeichnung \textbf{chapter} im Link vorangestellt)
+
+  \item{\verb"\paragraphref"} -- Verweis/Referenzierung auf ein Kapitel (ähnlich \verb"\ref{...}", aber mit
+      der Bezeichnung \textbf{paragraph} im Link vorangestellt)
+
+  \item{\verb"\figureref"} -- Verweis/Referenzierung auf ein Kapitel (ähnlich \verb"\ref{...}", aber mit
+      der Bezeichnung \textbf{figure} im Link vorangestellt)
+
+  \item{\verb"\tableref"} -- Verweis/Referenzierung auf ein Kapitel (ähnlich \verb"\ref{...}", aber mit
+      der Bezeichnung \textbf{table} im Link vorangestellt)
+
+  \item{\verb"\questionref"} -- Verweis/Referenzierung auf ein Kapitel (ähnlich \verb"\ref{...}", aber mit
+      der Bezeichnung \textbf{question} im Link vorangestellt)
+
+  \item{\verb"\fig{"Optionen\verb"}{"Dateiname\verb"}{"Beschriftung\verb"}{"Quellenzusatz mit führendem
+      Leerzeichen, Klammer und Referenz\verb"}{"Labelname\verb"}"} - Erzeugt automatisch eine
+      Abbildungs-/Figure-Umgebung mit allen relevanten Angaben.\\Beispiel: s.o., aber anstelle von vgl. sollte die englische Abkürzung cp.\abbrev{c.p.}{compare} benutzt werden.
+ \end{description}
+
+
+\subsubsection{Minimalbeispiel}
+\label{chap:beispieldokument}
+
+Beispieldokument für eine \textbf{Diplomarbeit}\index{Diplomarbeit} mit \textbf{Inhalts-}\index{Inhaltsverzeichnis},
+\textbf{Tabellen-}\index{Tabellenverzeichnis},
+\textbf{Abbildungs}\index{Abbildungsverzeichnis}- und \textbf{Abkürzungsverzeichnis}\index{Abkürzungsverzeichnis} am Lehrstuhl für Wirtschaftsinformatik | Business Intelligence Research:
+
+\begin{verbatim}
+\documentclass[winf, diplom, hyperref, standardfont, loa, lot, lof, toc,
+titelseite]{wiid_08_07}
+\fakultaet{Fakultät Wirtschaftswissenschaften}
+\professurinstitut{Lehrstuhl für Wirtschaftsinformatik,
+Business Intelligence Research}
+\author{Name des Autors (\\ Name 2. Autor\\...)}
+\matno{Matrikelnummer (\\ Matrikel 2. Autor\...)}
+\title{Titel der Arbeit}
+\professor{Prof. Dr. Andreas Hilbert}
+\betreuer{Dipl.-Wirt.-Inf. Kai Heinrich}
+\bearbeitungszeitraum{01.05.2015-30.08.2015}
+
+\begin{document}
+
+Hier kommt der Text....
+
+%Zum Einbinden von Kapiteln (Kapitel.tex) kann der Befehl
+%\include{Dateiname ohne Endung} verwendet werden!
+
+\newpage
+\phantomsection
+\addcontentsline{toc}{section}{Literaturverzeichnis}
+\bibliographystyle{BIR}
+\bibliography{Name der *.bib-Datei ohne Endung angeben}
+
+\end{document}
+\end{verbatim}
+
+\subsubsection{Packages}
+\label{chap:packages}
+
+Die Klasse stellt bereits eine Reihe von \LaTeX-Packages zur
+Verfügung. Diese sind:
+\begin{itemize}
+  \item{\textbf{inputenc} -- Kodierungsparameter \textbf{latin1}}: Unterstützung des erweiterten Zeichensatzes zur Kodierung von Umlauten.
+
+  \item{\textbf{fontenc} -- optionaler Parameter \textbf{T1}}: Silbentrennung bei Wörtern mit Umlauten.
+
+  \item{\textbf{graphicx}} -- Einbinden von Bildern.
+
+  \item{\textbf{tabularx}} -- Erzwingen einer bestimmten Tabellenbereite.
+
+  \item{\textbf{url}} -- Ermöglicht Zeilenumbrüche innerhalb von URL-Adressen.
+
+  \item{\textbf{fancyvrb}} -- Stellt Umgebungen und Kommandos für die Verbatim-Umgebung zur Verfügung.
+
+  \item{Mathematikspezifische Pakete \textbf{amsmath, amsfonts} und \textbf{amssymb}}
+
+  \item{Weitere Pakete}:
+
+    \begin{itemize}
+
+        \item{color}
+
+        \item{ifthen}
+
+        \item{fancybox}
+
+        \item{setspace}
+
+        \item{eurosym}
+
+        \item{srcltx} -- Parameter \textbf{active}
+
+        \item{moreverb} -- für Umrandungen
+
+        \item{dcolumn, array, multirow als Tabellenoptionen}
+
+        \item{xy mit den Parametern \textbf{arrow}, \textbf{matrix}, \textbf{curve} zur Generierung von Diagrammen}
+
+        \item{rotating} -- zum Drehen von Objekten
+
+        \item{fancyhdr} -- für die Modifizierung von Kopfzeilen
+
+        \item{pstricks}
+
+        \item{here} -- Option [h], so dass die Objekte an der vom Autor definierten Stelle erscheinen und nicht auf der Seite verschoben werden.
+
+    \end{itemize}
+
+\end{itemize}
+
+Das folgende Kapitel beschäftigt sich auszugsweise mit dem \glqq guten Stil\grqq \ in wissenschaftlichen Arbeiten und weiterführender Literatur.
