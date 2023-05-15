@@ -1,0 +1,152 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Holiday {% endblock %} 
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+    <!-- [ Main Content ] start -->
+    <div class="pcoded-main-container">
+        <div class="pcoded-wrapper">
+
+            <div class="pcoded-content">
+                <div class="pcoded-inner-content">
+                    <!-- [ breadcrumb ] start -->
+
+                    <!-- [ breadcrumb ] end -->
+                    <div class="main-body">
+                        <div class="page-wrapper">
+                            <!-- [ Main Content ] start -->
+                            <div class="row">
+                                <!--[ Holiday Entitlement section ] start-->
+                                <div class="col-md-6 col-xl-3">
+                                    <div class="card daily-sales">
+                                        <div class="card-block">
+                                            <h6 class="mb-4">Holiday Entitlement</h6>
+                                            <div class="row d-flex align-items-center">
+                                                <div class="col-9">
+                                                    <h3 class="f-w-300 d-flex align-items-center m-b-0">20 days</h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--[ Holiday Entitlement section ] end-->
+                                <!--[ Not Taken Holidays in last Semester ] starts-->
+                                <div class="col-md-6 col-xl-3">
+                                    <div class="card Monthly-sales">
+                                        <div class="card-block">
+                                            <h6 class="mb-4">Not Taken Holidays in last Semester</h6>
+                                            <div class="row d-flex align-items-center">
+                                                <div class="col-9">
+                                                    <h3 class="f-w-300 d-flex align-items-center  m-b-0">2 days</h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--[ Not Taken Holidays in last Semester section ] end-->
+                                <!--[ Taken Holiday section ] starts-->
+                                <div class="col-md-12 col-xl-3">
+                                    <div class="card yearly-sales">
+                                        <div class="card-block">
+                                            <h6 class="mb-4">Taken Holiday</h6>
+                                            <div class="row d-flex align-items-center">
+                                                <div class="col-9">
+                                                    <h3 class="f-w-300 d-flex align-items-center  m-b-0">5 days</h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--[ Taken Holiday section ] end-->
+                                <!--[ Remaining Holiday section ] starts-->
+                                <div class="col-md-12 col-xl-3">
+                                    <div class="card yearly-sales">
+                                        <div class="card-block">
+                                            <h6 class="mb-4">Remaining Holiday</h6>
+                                            <div class="row d-flex align-items-center">
+                                                <div class="col-9">
+                                                    <h3 class="f-w-300 d-flex align-items-center  m-b-0">17 days</h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--[ Remaining Holiday section ] end-->
+                                <!--[ Taken Holidays ] start-->
+                                <div class="col-xl-8 col-md-6">
+                                    <div class="card Recent-Users">
+                                        <div class="card-header">
+                                            <h5>Taken Holidays</h5>
+                                        </div>
+                                        <div class="card-block px-0 py-3">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>From</th>
+                                                            <th>To</th>
+                                                            <th>Duration</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    <tr class="unread">
+                                                        <td>
+                                                            11 May 2023
+                                                        </td>
+                                                        <td>
+                                                            18 May 2023
+                                                        </td>
+                                                        <td>
+                                                            5 Days
+                                                        </td>
+                                                    </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--[ Taken Holidays ] end-->
+
+                                <!-- [ Add New Holiday ] start -->
+                                <div class="col-xl-4 col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5>Add new Holiday</h5>
+                                        </div>
+                                        <div class="card-block">
+                                            <form>
+                                                <div class="form-group">
+                                                    <label for="from">From</label>
+                                                    <input type="date" class="form-control" id="from">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="to">To</label>
+                                                    <input type="date" class="form-control" id="to">
+                                                </div>
+                                                <button type="submit" class="btn btn-primary">Submit</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- [ Add New Holiday ] end -->
+
+                            </div>
+                            <!-- [ Main Content ] end -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <!-- [ Main Content ] end -->            
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
