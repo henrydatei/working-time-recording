@@ -197,25 +197,46 @@
                                 </div>
                                 <!--[ Not Finished Tasks ] end-->
 
-                                <!-- [ statistics year chart ] start -->
+                                <!-- [ Add New Task ] start -->
                                 <div class="col-xl-4 col-md-6">
-                                    <div class="card card-event">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5>Add new Task</h5>
+                                        </div>
                                         <div class="card-block">
-                                            <div class="row align-items-center justify-content-center">
-                                                <div class="col">
-                                                    <h5 class="m-0">Upcoming Event</h5>
+                                            <form>
+                                                <div class="form-group">
+                                                    <label for="TaskDescription">Task Description</label>
+                                                    <textarea class="form-control" id="TaskDescription" rows="3"></textarea>
                                                 </div>
-                                                <div class="col-auto">
-                                                    <label class="label theme-bg2 text-white f-14 f-w-400 float-right">34%</label>
+                                                <div class="form-group">
+                                                    <label for="workedHours">Worked hours</label>
+                                                    <input type="number" class="form-control" id="workedHours">
                                                 </div>
-                                            </div>
-                                            <h2 class="mt-3 f-w-300">45<sub class="text-muted f-14">Competitors</sub></h2>
-                                            <h6 class="text-muted mt-4 mb-0">You can participate in event </h6>
-                                            <i class="fab fa-angellist text-c-purple f-50"></i>
+                                                <div class="form-group">
+                                                    <label for="plannedHours">Planned hours</label>
+                                                    <input type="number" class="form-control" id="plannedHours">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="deadline">Deadline</label>
+                                                    <input type="date" class="form-control" id="deadline">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="taskGivenBy">Task given by</label>
+                                                    <select class="form-control" id="taskGivenBy">
+                                                        <option>A</option>
+                                                        <option selected>B</option>
+                                                        <option>C</option>
+                                                        <option>D</option>
+                                                        <option>E</option>
+                                                    </select>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary">Submit</button>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
-                                <!-- [ statistics year chart ] end -->
+                                <!-- [ Add New Task ] end -->
                                 <!--[social-media section] start-->
                                 <div class="col-md-12 col-xl-4">
                                     <div class="card card-social">
