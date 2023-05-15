@@ -1,0 +1,125 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} All Tasks {% endblock %} 
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+    <!-- [ Main Content ] start -->
+    <div class="pcoded-main-container">
+        <div class="pcoded-wrapper">
+
+            <div class="pcoded-content">
+                <div class="pcoded-inner-content">
+                    <!-- [ breadcrumb ] start -->
+
+                    <!-- [ breadcrumb ] end -->
+                    <div class="main-body">
+                        <div class="page-wrapper">
+                            <!-- [ Main Content ] start -->
+                            <div class="row">
+                                <!--[ All Tasks ] start-->
+                                <div class="col-xl-12 col-md-6">
+                                    <div class="card Recent-Users">
+                                        <div class="card-header">
+                                            <h5>All Tasks</h5>
+                                        </div>
+                                        <div class="card-block px-0 py-3">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Task</th>
+                                                            <th>Worked Hours</th>
+                                                            <th>Total Hours</th>
+                                                            <th>Dealine</th>
+                                                            <th>Assigned By</th>
+                                                            <th></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    <tr class="unread">
+                                                        <td>
+                                                            Task 1
+                                                        </td>
+                                                        <td>
+                                                            5
+                                                        </td>
+                                                        <td>
+                                                            5
+                                                        </td>
+                                                        <td>
+                                                            31 Dec 2020
+                                                        </td>
+                                                        <td>
+                                                            Max Mustermann
+                                                        </td>
+                                                        <td>
+                                                            <a href="editTask.html" class="label theme-bg text-white f-12">Edit</a>
+                                                        </td>
+                                                    </tr>
+                                                    <tr class="unread">
+                                                        <td>
+                                                            Task 2
+                                                        </td>
+                                                        <td>
+                                                            5
+                                                        </td>
+                                                        <td>
+                                                            5
+                                                        </td>
+                                                        <td>
+                                                            31 Dec 2020
+                                                        </td>
+                                                        <td>
+                                                            Max Mustermann
+                                                        </td>
+                                                        <td>
+                                                            <a href="editTask.html" class="label theme-bg text-white f-12">Edit</a>
+                                                        </td>
+                                                    </tr>
+                                                    <tr class="unread">
+                                                        <td>
+                                                            Task 3
+                                                        </td>
+                                                        <td>
+                                                            5
+                                                        </td>
+                                                        <td>
+                                                            5
+                                                        </td>
+                                                        <td>
+                                                            31 Dec 2020
+                                                        </td>
+                                                        <td>
+                                                            Max Mustermann
+                                                        </td>
+                                                        <td>
+                                                            <a href="editTask.html" class="label theme-bg text-white f-12">Edit</a>
+                                                        </td>
+                                                    </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--[ All Tasks ] end-->
+
+                            </div>
+                            <!-- [ Main Content ] end -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <!-- [ Main Content ] end -->            
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
