@@ -75,6 +75,10 @@ a:hover {
   text-decoration: none;
 }
 
+.paddingZero {
+  padding: 0.375rem 0.75rem !important;
+}
+
 h1,
 h2,
 h3,
