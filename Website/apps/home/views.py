@@ -19,9 +19,9 @@ def index(request):
     hours_to_work = np.busday_count(logged_user.profile.contract_start_date, dt.date.today()) * logged_user.profile.hours_per_week # TODO: add Feiertage
     tasks = Task.objects.filter(assigned_to=logged_user)
     worked_hours = sum([task.worked_hours for task in tasks])
-    worked_hours_pct = round(worked_hours / hours_to_work * 100, 2)
+    worked_hours_pct = round(worked_hours / hours_to_work * 100, 2) if worked_hours < hours_to_work else 100
     planned_hours = sum([task.total_hours for task in tasks])
-    planned_hours_pct = round(planned_hours / hours_to_work * 100, 2)
+    planned_hours_pct = round(planned_hours / hours_to_work * 100, 2) if planned_hours < hours_to_work else 100
     excess_hours = hours_to_work - worked_hours
     
     context = {
