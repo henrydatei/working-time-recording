@@ -24,19 +24,19 @@
                                 <div class="col-md-6 col-xl-4">
                                     <div class="card daily-sales">
                                         <div class="card-block">
-                                            <h6 class="mb-4">Actual/Target</h6>
+                                            <h6 class="mb-4">Actual/Target (only this semester)</h6>
                                             <div class="row d-flex align-items-center">
                                                 <div class="col-9">
-                                                    <h3 class="f-w-300 d-flex align-items-center m-b-0">120 hours</h3>
+                                                    <h3 class="f-w-300 d-flex align-items-center m-b-0">{{ worked_hours }} of {{ hours_to_work }} hours</h3>
                                                 </div>
 
                                                 <div class="col-3 text-right">
-                                                    <p class="m-b-0">60%</p>
+                                                    <p class="m-b-0">{{ worked_hours_pct }}%</p>
                                                 </div>
                                             </div>
                                             <div class="progress m-t-30" style="height: 7px;">
                                                 <div class="progress-bar progress-c-theme" role="progressbar"
-                                                        style="width: 60%;" aria-valuenow="60" aria-valuemin="0"
+                                                        style="width: {{ worked_hours_pct }}%;" aria-valuenow="{{ worked_hours_pct }}" aria-valuemin="0"
                                                         aria-valuemax="100"></div>
                                             </div>
                                         </div>
@@ -47,18 +47,18 @@
                                 <div class="col-md-6 col-xl-4">
                                     <div class="card Monthly-sales">
                                         <div class="card-block">
-                                            <h6 class="mb-4">Planned/Target</h6>
+                                            <h6 class="mb-4">Planned/Target (only this semester)</h6>
                                             <div class="row d-flex align-items-center">
                                                 <div class="col-9">
-                                                    <h3 class="f-w-300 d-flex align-items-center  m-b-0">130 hours</h3>
+                                                    <h3 class="f-w-300 d-flex align-items-center  m-b-0">{{ planned_hours }} of {{ hours_to_work }} hours</h3>
                                                 </div>
                                                 <div class="col-3 text-right">
-                                                    <p class="m-b-0">70%</p>
+                                                    <p class="m-b-0">{{ planned_hours_pct }}%</p>
                                                 </div>
                                             </div>
                                             <div class="progress m-t-30" style="height: 7px;">
                                                 <div class="progress-bar progress-c-theme2" role="progressbar"
-                                                        style="width: 70%;" aria-valuenow="70" aria-valuemin="0"
+                                                        style="width: {{ planned_hours_pct }}%;" aria-valuenow="{{ planned_hours_pct }}" aria-valuemin="0"
                                                         aria-valuemax="100"></div>
                                             </div>
                                         </div>
@@ -69,10 +69,10 @@
                                 <div class="col-md-12 col-xl-4">
                                     <div class="card yearly-sales">
                                         <div class="card-block">
-                                            <h6 class="mb-4">Excess Capacity</h6>
+                                            <h6 class="mb-4">Excess Capacity + Carryover last Semester</h6>
                                             <div class="row d-flex align-items-center">
                                                 <div class="col-9">
-                                                    <h3 class="f-w-300 d-flex align-items-center  m-b-0">1.5 hours</h3>
+                                                    <h3 class="f-w-300 d-flex align-items-center  m-b-0">{{ excess_hours }} hours + {{ carry_over_hours_from_last_semester }} hours</h3>
                                                 </div>
                                             </div>
                                         </div>
