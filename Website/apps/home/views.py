@@ -16,7 +16,7 @@ import numpy as np
 @login_required(login_url="/login/")
 def index(request):
     logged_user = request.user
-    hours_to_work = np.busday_count(logged_user.profile.contract_start_date, dt.date.today()) * logged_user.profile.hours_per_week # TODO: add Feiertage
+    hours_to_work = np.busday_count(logged_user.profile.contract_start_date, dt.date.today()) * logged_user.profile.hours_per_week/5 # TODO: add Feiertage
     tasks = Task.objects.filter(assigned_to=logged_user)
     worked_hours = sum([task.worked_hours for task in tasks])
     worked_hours_pct = round(worked_hours / hours_to_work * 100, 2) if worked_hours < hours_to_work else 100
