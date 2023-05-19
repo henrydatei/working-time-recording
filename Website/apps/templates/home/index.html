@@ -89,106 +89,28 @@
                                             <div class="table-responsive">
                                                 <table class="table table-hover">
                                                     <tbody>
-                                                    <tr class="unread">
-                                                        <td>
-                                                            <h6 class="mb-1">Vorlesung vorbereiten</h6>
-                                                        </td>
-                                                        <td>
-                                                            <h6 class="text-muted">11 MAY 12:56</h6>
-                                                        </td>
-                                                        <td>
-                                                            <form class="form-inline">
-                                                                <div class="form-group input-group-sm mx-sm-3 mb-2">
-                                                                    <label for="actualHours" class="sr-only">actual</label>
-                                                                    <input type="text" class="form-control" id="actualHours" value="5" size="3">
-                                                                    /
-                                                                    <label for="plannedHours" class="sr-only">planned</label>
-                                                                    <input type="text" class="form-control" id="plannedHours" value="10" size="3">
-                                                                </div>
-                                                                <button type="submit" class="btn btn-primary mb-2 paddingZero">Update</button>
-                                                            </form>
-                                                        </td>
-                                                    </tr>
-                                                    <tr class="unread">
-                                                        <td>
-                                                            <h6 class="mb-1">Meeting XYZ durchführen</h6>
-                                                        </td>
-                                                        <td>
-                                                            <h6 class="text-muted">11 MAY 12:56</h6>
-                                                        </td>
-                                                        <td>
-                                                            <form class="form-inline">
-                                                                <div class="form-group input-group-sm mx-sm-3 mb-2">
-                                                                    <label for="actualHours" class="sr-only">actual</label>
-                                                                    <input type="text" class="form-control" id="actualHours" value="5" size="3">
-                                                                    /
-                                                                    <label for="plannedHours" class="sr-only">planned</label>
-                                                                    <input type="text" class="form-control" id="plannedHours" value="10" size="3">
-                                                                </div>
-                                                                <button type="submit" class="btn btn-primary mb-2 paddingZero">Update</button>
-                                                            </form>
-                                                        </td>
-                                                    </tr>
-                                                    <tr class="unread">
-                                                        <td>
-                                                            <h6 class="mb-1">Experimente durchführen</h6>
-                                                        </td>
-                                                        <td>
-                                                            <h6 class="text-muted">11 MAY 12:56</h6>
-                                                        </td>
-                                                        <td>
-                                                            <form class="form-inline">
-                                                                <div class="form-group input-group-sm mx-sm-3 mb-2">
-                                                                    <label for="actualHours" class="sr-only">actual</label>
-                                                                    <input type="text" class="form-control" id="actualHours" value="5" size="3">
-                                                                    /
-                                                                    <label for="plannedHours" class="sr-only">planned</label>
-                                                                    <input type="text" class="form-control" id="plannedHours" value="10" size="3">
-                                                                </div>
-                                                                <button type="submit" class="btn btn-primary mb-2 paddingZero">Update</button>
-                                                            </form>
-                                                        </td>
-                                                    </tr>
-                                                    <tr class="unread">
-                                                        <td>
-                                                            <h6 class="mb-1">Forum beantworten</h6>
-                                                        </td>
-                                                        <td>
-                                                            <h6 class="text-muted">11 MAY 12:56</h6>
-                                                        </td>
-                                                        <td>
-                                                            <form class="form-inline">
-                                                                <div class="form-group input-group-sm mx-sm-3 mb-2">
-                                                                    <label for="actualHours" class="sr-only">actual</label>
-                                                                    <input type="text" class="form-control" id="actualHours" value="5" size="3">
-                                                                    /
-                                                                    <label for="plannedHours" class="sr-only">planned</label>
-                                                                    <input type="text" class="form-control" id="plannedHours" value="10" size="3">
-                                                                </div>
-                                                                <button type="submit" class="btn btn-primary mb-2 paddingZero">Update</button>
-                                                            </form>
-                                                        </td>
-                                                    </tr>
-                                                    <tr class="unread">
-                                                        <td>
-                                                            <h6 class="mb-1">Mails schreiben</h6>
-                                                        </td>
-                                                        <td>
-                                                            <h6 class="text-muted">11 MAY 12:56</h6>
-                                                        </td>
-                                                        <td>
-                                                            <form class="form-inline">
-                                                                <div class="form-group input-group-sm mx-sm-3 mb-2">
-                                                                    <label for="actualHours" class="sr-only">actual</label>
-                                                                    <input type="text" class="form-control" id="actualHours" value="5" size="3">
-                                                                    /
-                                                                    <label for="plannedHours" class="sr-only">planned</label>
-                                                                    <input type="text" class="form-control" id="plannedHours" value="10" size="3">
-                                                                </div>
-                                                                <button type="submit" class="btn btn-primary mb-2 paddingZero">Update</button>
-                                                            </form>
-                                                        </td>
-                                                    </tr>
+                                                    {% for task in tasks %}
+                                                        <tr class="unread">
+                                                            <td>
+                                                                <h6 class="mb-1">{{ task.task_text}}</h6>
+                                                            </td>
+                                                            <td>
+                                                                <h6 class="text-muted">{{ task.deadline }}</h6>
+                                                            </td>
+                                                            <td>
+                                                                <form class="form-inline">
+                                                                    <div class="form-group input-group-sm mx-sm-3 mb-2">
+                                                                        <label for="actualHours" class="sr-only">actual</label>
+                                                                        <input type="text" class="form-control" id="actualHours" value="{{ task.worked_hours }}" size="3">
+                                                                        /
+                                                                        <label for="plannedHours" class="sr-only">planned</label>
+                                                                        <input type="text" class="form-control" id="plannedHours" value="{{ task.total_hours }}" size="3">
+                                                                    </div>
+                                                                    <button type="submit" class="btn btn-primary mb-2 paddingZero">Update</button>
+                                                                </form>
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
                                                     </tbody>
                                                 </table>
                                             </div>
