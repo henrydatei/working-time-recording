@@ -155,7 +155,7 @@
                                                             {% if my_supervisor == supervisor %}
                                                             <option value = {{ supervisor.id }} selected>{{ supervisor.last_name }}, {{ supervisor.first_name }}</option>
                                                             {% else %}
-                                                            <option>{{ supervisor.first_name }} {{ supervisor.last_name }}</option>
+                                                            <option value = {{ supervisor.id }}>{{ supervisor.first_name }} {{ supervisor.last_name }}</option>
                                                             {% endif %}
                                                         {% endfor %}
                                                     </select>

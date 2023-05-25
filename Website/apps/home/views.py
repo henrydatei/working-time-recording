@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from django.urls import reverse
+from django.shortcuts import get_object_or_404
 
 from .models import Task, Holiday, Profile
 from django.contrib.auth.models import User
@@ -64,10 +65,30 @@ def index(request):
 
 @login_required(login_url="/login/")
 def tasks(request):
-    context = {}
     logged_user = request.user
+    tasks = Task.objects.filter(assigned_to=logged_user)
+    
+    context = {
+        'segment': 'tasks',
+        'tasks': tasks,
+    }
     
     html_template = loader.get_template('home/tasks.html')
+    return HttpResponse(html_template.render(context, request))
+
+@login_required(login_url="/login/")
+def editTask(request, task_id):
+    logged_user = request.user
+    task = get_object_or_404(Task, pk=task_id, assigned_to=logged_user)
+    supervisors = User.objects.filter(groups__name='supervisor')
+    
+    context = {
+        'segment': 'editTask',
+        'task': task,
+        'supervisors': supervisors,
+    }
+    
+    html_template = loader.get_template('home/editTask.html')
     return HttpResponse(html_template.render(context, request))
 
 @login_required(login_url="/login/")

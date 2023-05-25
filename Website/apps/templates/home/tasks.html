@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} All Tasks {% endblock %} 
+{% block title %} Tasks {% endblock %} 
 
 <!-- Specific CSS goes HERE -->
 {% block stylesheets %}{% endblock stylesheets %}
@@ -40,66 +40,18 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                    <tr class="unread">
-                                                        <td>
-                                                            Task 1
-                                                        </td>
-                                                        <td>
-                                                            5
-                                                        </td>
-                                                        <td>
-                                                            5
-                                                        </td>
-                                                        <td>
-                                                            31 Dec 2020
-                                                        </td>
-                                                        <td>
-                                                            Max Mustermann
-                                                        </td>
-                                                        <td>
-                                                            <a href="editTask.html" class="label theme-bg text-white f-12">Edit</a>
-                                                        </td>
-                                                    </tr>
-                                                    <tr class="unread">
-                                                        <td>
-                                                            Task 2
-                                                        </td>
-                                                        <td>
-                                                            5
-                                                        </td>
-                                                        <td>
-                                                            5
-                                                        </td>
-                                                        <td>
-                                                            31 Dec 2020
-                                                        </td>
-                                                        <td>
-                                                            Max Mustermann
-                                                        </td>
-                                                        <td>
-                                                            <a href="editTask.html" class="label theme-bg text-white f-12">Edit</a>
-                                                        </td>
-                                                    </tr>
-                                                    <tr class="unread">
-                                                        <td>
-                                                            Task 3
-                                                        </td>
-                                                        <td>
-                                                            5
-                                                        </td>
-                                                        <td>
-                                                            5
-                                                        </td>
-                                                        <td>
-                                                            31 Dec 2020
-                                                        </td>
-                                                        <td>
-                                                            Max Mustermann
-                                                        </td>
-                                                        <td>
-                                                            <a href="editTask.html" class="label theme-bg text-white f-12">Edit</a>
-                                                        </td>
-                                                    </tr>
+                                                        {% for task in tasks %}
+                                                            <tr class="unread">
+                                                                <td>{{ task.task_text }}</td>
+                                                                <td>{{ task.worked_hours }}</td>
+                                                                <td>{{ task.total_hours }}</td>
+                                                                <td>{{ task.deadline }}</td>
+                                                                <td>{{ task.assigner.last_name }}, {{ task.assigner.first_name }}</td>
+                                                                <td>
+                                                                    <a href="/editTask/{{ task.id }}" class="label theme-bg text-white f-12">Edit</a>
+                                                                </td>
+                                                            </tr>
+                                                        {% endfor %}
                                                     </tbody>
                                                 </table>
                                             </div>
