@@ -98,13 +98,16 @@
                                                                 <h6 class="text-muted">{{ task.deadline }}</h6>
                                                             </td>
                                                             <td>
-                                                                <form class="form-inline">
+                                                                <form class="form-inline" action = "#" method = "POST">
+                                                                    {% csrf_token %}
+                                                                    <input type="hidden" name="taskId" value="{{ task.id }}">
+                                                                    <input type="hidden" name="formType" value="updateTask">
                                                                     <div class="form-group input-group-sm mx-sm-3 mb-2">
                                                                         <label for="actualHours" class="sr-only">actual</label>
-                                                                        <input type="text" class="form-control" id="actualHours" value="{{ task.worked_hours }}" size="3">
+                                                                        <input type="text" class="form-control" id="actualHours" value="{{ task.worked_hours }}" size="3" name = "actualHours">
                                                                         /
                                                                         <label for="plannedHours" class="sr-only">planned</label>
-                                                                        <input type="text" class="form-control" id="plannedHours" value="{{ task.total_hours }}" size="3">
+                                                                        <input type="text" class="form-control" id="plannedHours" value="{{ task.total_hours }}" size="3" name = "plannedHours">
                                                                     </div>
                                                                     <button type="submit" class="btn btn-primary mb-2 paddingZero">Update</button>
                                                                 </form>
@@ -128,6 +131,7 @@
                                         <div class="card-block">
                                             <form action = "#", method = "POST">
                                                 {% csrf_token %}
+                                                <input type="hidden" name="formType" value="newTask">
                                                 <div class="form-group">
                                                     <label for="TaskDescription">Task Description</label>
                                                     <textarea class="form-control" id="TaskDescription" rows="3" name = "TaskDescription"></textarea>

@@ -8,8 +8,10 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from django.urls import reverse
+
 from .models import Task, Holiday, Profile
 from django.contrib.auth.models import User
+from django.db.models import F
 
 import datetime as dt
 import numpy as np
@@ -20,11 +22,20 @@ def index(request):
     
     # process form
     if request.method == 'POST':
-        t = Task(assigned_to = logged_user, assigner = User.objects.get(id=request.POST["taskGivenBy"]), task_text = request.POST["TaskDescription"], total_hours = request.POST["plannedHours"], worked_hours = request.POST["workedHours"], deadline = request.POST["deadline"])
-        t.save()
+        if request.POST["formType"] == "newTask":
+            t = Task(assigned_to = logged_user, assigner = User.objects.get(id=request.POST["taskGivenBy"]), task_text = request.POST["TaskDescription"], total_hours = request.POST["plannedHours"], worked_hours = request.POST["workedHours"], deadline = request.POST["deadline"])
+            if t.worked_hours <= t.total_hours:
+                t.save()
+        elif request.POST["formType"] == "updateTask":
+            t = Task.objects.get(id=request.POST["taskId"])
+            t.worked_hours = request.POST["actualHours"]
+            t.total_hours = request.POST["plannedHours"]
+            if t.worked_hours <= t.total_hours:
+                t.save()
     
     hours_to_work = np.busday_count(logged_user.profile.contract_start_date, dt.date.today()) * logged_user.profile.hours_per_week/5 # TODO: add Feiertage
     tasks = Task.objects.filter(assigned_to=logged_user)
+    unfinished_tasks = Task.objects.filter(assigned_to=logged_user, worked_hours__lt = F('total_hours'))
     worked_hours = sum([task.worked_hours for task in tasks])
     worked_hours_pct = round(worked_hours / hours_to_work * 100, 2) if worked_hours < hours_to_work else 100
     planned_hours = sum([task.total_hours for task in tasks])
@@ -43,7 +54,7 @@ def index(request):
         'planned_hours_pct': planned_hours_pct,
         'carry_over_hours_from_last_semester': logged_user.profile.carry_over_hours_from_last_semester,
         'excess_hours': excess_hours,
-        'tasks': tasks,
+        'tasks': unfinished_tasks,
         'supervisors': supervisors,
         'my_supervisor': logged_user.profile.supervisor,
     }
