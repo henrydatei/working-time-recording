@@ -126,29 +126,30 @@
                                             <h5>Add new Task</h5>
                                         </div>
                                         <div class="card-block">
-                                            <form>
+                                            <form action = "#", method = "POST">
+                                                {% csrf_token %}
                                                 <div class="form-group">
                                                     <label for="TaskDescription">Task Description</label>
-                                                    <textarea class="form-control" id="TaskDescription" rows="3"></textarea>
+                                                    <textarea class="form-control" id="TaskDescription" rows="3" name = "TaskDescription"></textarea>
                                                 </div>
                                                 <div class="form-group">
                                                     <label for="workedHours">Worked hours</label>
-                                                    <input type="number" class="form-control" id="workedHours">
+                                                    <input type="number" class="form-control" id="workedHours" name = "workedHours">
                                                 </div>
                                                 <div class="form-group">
                                                     <label for="plannedHours">Planned hours</label>
-                                                    <input type="number" class="form-control" id="plannedHours">
+                                                    <input type="number" class="form-control" id="plannedHours" name = "plannedHours">
                                                 </div>
                                                 <div class="form-group">
                                                     <label for="deadline">Deadline</label>
-                                                    <input type="date" class="form-control" id="deadline">
+                                                    <input type="date" class="form-control" id="deadline" name = "deadline">
                                                 </div>
                                                 <div class="form-group">
                                                     <label for="taskGivenBy">Task given by</label>
-                                                    <select class="form-control" id="taskGivenBy">
+                                                    <select class="form-control" id="taskGivenBy" name = "taskGivenBy">
                                                         {% for supervisor in supervisors %}
                                                             {% if my_supervisor == supervisor %}
-                                                            <option selected>{{ supervisor.first_name }} {{ supervisor.last_name }}</option>
+                                                            <option value = {{ supervisor.id }} selected>{{ supervisor.last_name }}, {{ supervisor.first_name }}</option>
                                                             {% else %}
                                                             <option>{{ supervisor.first_name }} {{ supervisor.last_name }}</option>
                                                             {% endif %}

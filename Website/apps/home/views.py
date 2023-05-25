@@ -17,6 +17,12 @@ import numpy as np
 @login_required(login_url="/login/")
 def index(request):
     logged_user = request.user
+    
+    # process form
+    if request.method == 'POST':
+        t = Task(assigned_to = logged_user, assigner = User.objects.get(id=request.POST["taskGivenBy"]), task_text = request.POST["TaskDescription"], total_hours = request.POST["plannedHours"], worked_hours = request.POST["workedHours"], deadline = request.POST["deadline"])
+        t.save()
+    
     hours_to_work = np.busday_count(logged_user.profile.contract_start_date, dt.date.today()) * logged_user.profile.hours_per_week/5 # TODO: add Feiertage
     tasks = Task.objects.filter(assigned_to=logged_user)
     worked_hours = sum([task.worked_hours for task in tasks])
