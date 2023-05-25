@@ -62,6 +62,22 @@ def index(request):
     html_template = loader.get_template('home/index.html')
     return HttpResponse(html_template.render(context, request))
 
+@login_required(login_url="/login/")
+def tasks(request):
+    context = {}
+    logged_user = request.user
+    
+    html_template = loader.get_template('home/tasks.html')
+    return HttpResponse(html_template.render(context, request))
+
+@login_required(login_url="/login/")
+def holidays(request):
+    context = {}
+    logged_user = request.user
+    
+    html_template = loader.get_template('home/holidays.html')
+    return HttpResponse(html_template.render(context, request))
+
 
 @login_required(login_url="/login/")
 def pages(request):
