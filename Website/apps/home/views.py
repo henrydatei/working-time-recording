@@ -9,6 +9,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from django.urls import reverse
 from .models import Task, Holiday, Profile
+from django.contrib.auth.models import User
 
 import datetime as dt
 import numpy as np
@@ -24,6 +25,9 @@ def index(request):
     planned_hours_pct = round(planned_hours / hours_to_work * 100, 2) if planned_hours < hours_to_work else 100
     excess_hours = hours_to_work - worked_hours
     
+    # all users in group supervisor
+    supervisors = User.objects.filter(groups__name='supervisor')
+    
     context = {
         'segment': 'index', 
         'hours_to_work': hours_to_work,  
@@ -33,7 +37,9 @@ def index(request):
         'planned_hours_pct': planned_hours_pct,
         'carry_over_hours_from_last_semester': logged_user.profile.carry_over_hours_from_last_semester,
         'excess_hours': excess_hours,
-        'tasks': tasks
+        'tasks': tasks,
+        'supervisors': supervisors,
+        'my_supervisor': logged_user.profile.supervisor,
     }
 
     html_template = loader.get_template('home/index.html')

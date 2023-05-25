@@ -146,11 +146,13 @@
                                                 <div class="form-group">
                                                     <label for="taskGivenBy">Task given by</label>
                                                     <select class="form-control" id="taskGivenBy">
-                                                        <option>A</option>
-                                                        <option selected>B</option>
-                                                        <option>C</option>
-                                                        <option>D</option>
-                                                        <option>E</option>
+                                                        {% for supervisor in supervisors %}
+                                                            {% if my_supervisor == supervisor %}
+                                                            <option selected>{{ supervisor.first_name }} {{ supervisor.last_name }}</option>
+                                                            {% else %}
+                                                            <option>{{ supervisor.first_name }} {{ supervisor.last_name }}</option>
+                                                            {% endif %}
+                                                        {% endfor %}
                                                     </select>
                                                 </div>
                                                 <button type="submit" class="btn btn-primary">Submit</button>

@@ -43,11 +43,12 @@ class Holiday(models.Model):
         
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    contract_start_date = models.DateField()
-    contract_end_date = models.DateField()
-    hours_per_week = models.FloatField()
+    contract_start_date = models.DateField(default=None, null=True, blank=True)
+    contract_end_date = models.DateField(default=None, null=True, blank=True)
+    hours_per_week = models.FloatField(default=0)
     carry_over_hours_from_last_semester = models.FloatField(default=0)
     carry_over_holiday_hours_from_last_semester = models.FloatField(default=0)
+    supervisor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='supervisor', default=None, null=True, blank=True)
 
     def __str__(self):
         return self.user.username
