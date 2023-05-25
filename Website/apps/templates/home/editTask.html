@@ -29,9 +29,10 @@
                                         <div class="card-block">
                                             <form action = "/tasks/" method = "POST">
                                                 {% csrf_token %}
+                                                <input type="hidden" name="taskId" value="{{ task.id }}">
                                                 <div class="form-group">
-                                                    <label for="TaskDescription">Task Description</label>
-                                                    <textarea class="form-control" id="TaskDescription" rows="3" name = "TaskDescription">{{ task.task_text }}</textarea>
+                                                    <label for="taskDescription">Task Description</label>
+                                                    <textarea class="form-control" id="taskDescription" rows="3" name = "taskDescription">{{ task.task_text }}</textarea>
                                                 </div>
                                                 <div class="form-group">
                                                     <label for="workedHours">Worked hours</label>

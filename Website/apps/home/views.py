@@ -66,6 +66,17 @@ def index(request):
 @login_required(login_url="/login/")
 def tasks(request):
     logged_user = request.user
+    
+    # process Form
+    if request.method == 'POST':
+        t = Task.objects.get(id=request.POST["taskId"])
+        t.task_text = request.POST["taskDescription"]
+        t.total_hours = request.POST["plannedHours"]
+        t.worked_hours = request.POST["workedHours"]
+        t.deadline = request.POST["deadline"]
+        t.assigner = User.objects.get(id=request.POST["taskGivenBy"])
+        t.save()
+    
     tasks = Task.objects.filter(assigned_to=logged_user)
     
     context = {
