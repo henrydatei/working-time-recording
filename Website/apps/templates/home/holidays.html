@@ -1,4 +1,5 @@
 {% extends "layouts/base.html" %}
+{% load date_extras %}
 
 {% block title %} Holiday {% endblock %} 
 
@@ -27,7 +28,7 @@
                                             <h6 class="mb-4">Holiday Entitlement</h6>
                                             <div class="row d-flex align-items-center">
                                                 <div class="col-9">
-                                                    <h3 class="f-w-300 d-flex align-items-center m-b-0">20 days</h3>
+                                                    <h3 class="f-w-300 d-flex align-items-center m-b-0">{{ holiday_entitlement|floatformat }} days</h3>
                                                 </div>
                                             </div>
                                         </div>
@@ -41,7 +42,7 @@
                                             <h6 class="mb-4">Not Taken Holidays in last Semester</h6>
                                             <div class="row d-flex align-items-center">
                                                 <div class="col-9">
-                                                    <h3 class="f-w-300 d-flex align-items-center  m-b-0">2 days</h3>
+                                                    <h3 class="f-w-300 d-flex align-items-center  m-b-0">{{ not_taken|floatformat }} days</h3>
                                                 </div>
                                             </div>
                                         </div>
@@ -55,7 +56,7 @@
                                             <h6 class="mb-4">Taken Holiday</h6>
                                             <div class="row d-flex align-items-center">
                                                 <div class="col-9">
-                                                    <h3 class="f-w-300 d-flex align-items-center  m-b-0">5 days</h3>
+                                                    <h3 class="f-w-300 d-flex align-items-center  m-b-0">{{ taken|floatformat }} days</h3>
                                                 </div>
                                             </div>
                                         </div>
@@ -69,7 +70,7 @@
                                             <h6 class="mb-4">Remaining Holiday</h6>
                                             <div class="row d-flex align-items-center">
                                                 <div class="col-9">
-                                                    <h3 class="f-w-300 d-flex align-items-center  m-b-0">17 days</h3>
+                                                    <h3 class="f-w-300 d-flex align-items-center  m-b-0">{{ remaining|floatformat }} days</h3>
                                                 </div>
                                             </div>
                                         </div>
@@ -93,17 +94,16 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                    <tr class="unread">
-                                                        <td>
-                                                            11 May 2023
-                                                        </td>
-                                                        <td>
-                                                            18 May 2023
-                                                        </td>
-                                                        <td>
-                                                            5 Days
-                                                        </td>
-                                                    </tr>
+                                                        {% for holiday in holidays %}
+                                                            <tr>
+                                                                <td>{{ holiday.from_date }}</td>
+                                                                <td>{{ holiday.to_date }}</td>
+                                                                <td>{{ holiday.from_date|busdays:holiday.to_date }}</td>
+                                                                <td>
+                                                                    <a href="/editHoliday/{{ holiday.id }}" class="label theme-bg text-white f-12">Edit</a>
+                                                                </td>
+                                                            </tr>
+                                                        {% endfor %}
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -119,14 +119,16 @@
                                             <h5>Add new Holiday</h5>
                                         </div>
                                         <div class="card-block">
-                                            <form>
+                                            <form action = "#" method = "POST">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="formType" value="newHoliday">
                                                 <div class="form-group">
                                                     <label for="from">From</label>
-                                                    <input type="date" class="form-control" id="from">
+                                                    <input type="date" class="form-control" id="from" name = "from_date">
                                                 </div>
                                                 <div class="form-group">
                                                     <label for="to">To</label>
-                                                    <input type="date" class="form-control" id="to">
+                                                    <input type="date" class="form-control" id="to" name = "to_date">
                                                 </div>
                                                 <button type="submit" class="btn btn-primary">Submit</button>
                                             </form>

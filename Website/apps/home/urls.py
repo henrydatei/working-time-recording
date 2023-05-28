@@ -16,6 +16,8 @@ urlpatterns = [
     path('editTask/<int:task_id>', views.editTask, name='editTask'),
     # Holiday page
     path('holidays/', views.holidays, name='holidays'),
+    # Edit Holiday page
+    path('editHoliday/<int:holiday_id>', views.editHoliday, name='editHoliday'),
 
     # Matches any html file
     re_path(r'^.*\.*', views.pages, name='pages'),

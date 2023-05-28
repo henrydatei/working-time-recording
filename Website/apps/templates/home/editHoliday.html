@@ -1,0 +1,63 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Edit Holiday {% endblock %} 
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+    <!-- [ Main Content ] start -->
+    <div class="pcoded-main-container">
+        <div class="pcoded-wrapper">
+
+            <div class="pcoded-content">
+                <div class="pcoded-inner-content">
+                    <!-- [ breadcrumb ] start -->
+
+                    <!-- [ breadcrumb ] end -->
+                    <div class="main-body">
+                        <div class="page-wrapper">
+                            <!-- [ Main Content ] start -->
+                            <div class="row">
+                                <!--[ Edit Task ] start-->
+                                <div class="col-xl-12 col-md-6">
+                                    <div class="card Recent-Users">
+                                        <div class="card-header">
+                                            <h5>Edit Holiday</h5>
+                                        </div>
+                                        <div class="card-block">
+                                            <form action = "/holidays/" method = "POST">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="holidayId" value="{{ holiday.id }}">
+                                                <input type="hidden" name="formType" value="editHoliday">
+                                                <div class="form-group">
+                                                    <label for="from_date">From Date</label>
+                                                    <input type="date" class="form-control" id="from_date" value="{{ holiday.from_date|date:"Y-m-d" }}" name = "from_date">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="to_date">To Date</label>
+                                                    <input type="date" class="form-control" id="to_date" value="{{ holiday.to_date|date:"Y-m-d" }}" name = "to_date">
+                                                </div>
+                                                <button type="submit" class="btn btn-primary">Submit</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--[ Edit Tasks ] end-->
+
+                            </div>
+                            <!-- [ Main Content ] end -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <!-- [ Main Content ] end -->            
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

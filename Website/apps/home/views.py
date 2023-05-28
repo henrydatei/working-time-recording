@@ -34,7 +34,7 @@ def index(request):
             if t.worked_hours <= t.total_hours:
                 t.save()
     
-    hours_to_work = np.busday_count(logged_user.profile.contract_start_date, dt.date.today()) * logged_user.profile.hours_per_week/5 # TODO: add Feiertage
+    hours_to_work = (np.busday_count(logged_user.profile.contract_start_date, dt.date.today()) + 1) * logged_user.profile.hours_per_week/5 # TODO: add Feiertage, add Holidays
     tasks = Task.objects.filter(assigned_to=logged_user)
     unfinished_tasks = Task.objects.filter(assigned_to=logged_user, worked_hours__lt = F('total_hours'))
     worked_hours = sum([task.worked_hours for task in tasks])
@@ -104,12 +104,53 @@ def editTask(request, task_id):
 
 @login_required(login_url="/login/")
 def holidays(request):
-    context = {}
     logged_user = request.user
+    
+    # process form
+    if request.method == 'POST':
+        if request.POST["formType"] == "newHoliday":
+            h = Holiday(by_id = logged_user, from_date = request.POST["from_date"], to_date = request.POST["to_date"])
+            if h.from_date < h.to_date:
+                h.save()
+        elif request.POST["formType"] == "editHoliday":
+            h = Holiday.objects.get(id=request.POST["holidayId"])
+            h.from_date = request.POST["from_date"]
+            h.to_date = request.POST["to_date"]
+            if h.from_date < h.to_date:
+                h.save()
+                
+    contract_duration = dt.date(logged_user.profile.contract_end_date.year, logged_user.profile.contract_end_date.month, logged_user.profile.contract_end_date.day) - dt.date(logged_user.profile.contract_start_date.year, logged_user.profile.contract_start_date.month, logged_user.profile.contract_start_date.day)
+    full_months = contract_duration.days // 30
+    holiday_entitlement = round(full_months * 20 / 12,0)
+    not_taken_holidays = logged_user.profile.carry_over_holiday_hours_from_last_semester / logged_user.profile.hours_per_week * 5
+    taken_holidays = Holiday.objects.filter(by_id=logged_user)
+    taken_holidays_days = sum([np.busday_count(holiday.from_date, holiday.to_date) + 1 for holiday in taken_holidays]) # TODO: add Feiertage
+    remaining_holidays = holiday_entitlement + not_taken_holidays - taken_holidays_days
+    
+    context = {
+        'segment': 'holidays',
+        'holiday_entitlement': holiday_entitlement,
+        'not_taken': not_taken_holidays,
+        'taken': taken_holidays_days,
+        'remaining': remaining_holidays,
+        'holidays': taken_holidays,
+    }
     
     html_template = loader.get_template('home/holidays.html')
     return HttpResponse(html_template.render(context, request))
 
+@login_required(login_url="/login/")
+def editHoliday(request, holiday_id):
+    logged_user = request.user
+    holiday = get_object_or_404(Holiday, pk=holiday_id, by_id=logged_user)
+    
+    context = {
+        'segment': 'editHoliday',
+        'holiday': holiday,
+    }
+    
+    html_template = loader.get_template('home/editHoliday.html')
+    return HttpResponse(html_template.render(context, request))
 
 @login_required(login_url="/login/")
 def pages(request):
