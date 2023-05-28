@@ -42,7 +42,7 @@
                                                     <tbody>
                                                         {% for task in tasks %}
                                                             <tr class="unread">
-                                                                <td>{{ task.task_text }}</td>
+                                                                <td>{{ task.task_text|truncatechars_html:40 }}</td>
                                                                 <td>{{ task.worked_hours }}</td>
                                                                 <td>{{ task.total_hours }}</td>
                                                                 <td>{{ task.deadline }}</td>
