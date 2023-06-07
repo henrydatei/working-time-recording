@@ -17,6 +17,21 @@ from django.db.models import F
 import datetime as dt
 import numpy as np
 
+def calcHoliday(user: User):
+    contract_duration = dt.date(user.profile.contract_end_date.year, user.profile.contract_end_date.month, user.profile.contract_end_date.day) - dt.date(user.profile.contract_start_date.year, user.profile.contract_start_date.month, user.profile.contract_start_date.day)
+    full_months = contract_duration.days // 30
+    holiday_entitlement = round(full_months * 20 / 12,0)
+    not_taken_holidays = user.profile.carry_over_holiday_hours_from_last_semester / user.profile.hours_per_week * 5
+    taken_holidays = Holiday.objects.filter(by_id=user)
+    taken_holidays_days = sum([np.busday_count(holiday.from_date, holiday.to_date) + 1 for holiday in taken_holidays]) # TODO: add Feiertage
+    remaining_holidays = holiday_entitlement + not_taken_holidays - taken_holidays_days
+    
+    return holiday_entitlement, not_taken_holidays, taken_holidays_days, remaining_holidays
+
+def calc_days_to_work(user: User):
+    days_to_work = np.busday_count(user.profile.contract_start_date, dt.date.today()) + 1 # TODO: add Feiertage, add Holidays
+    return days_to_work
+
 @login_required(login_url="/login/")
 def index(request):
     logged_user = request.user
@@ -34,7 +49,7 @@ def index(request):
             if t.worked_hours <= t.total_hours:
                 t.save()
     
-    hours_to_work = (np.busday_count(logged_user.profile.contract_start_date, dt.date.today()) + 1) * logged_user.profile.hours_per_week/5 # TODO: add Feiertage, add Holidays
+    hours_to_work = calc_days_to_work(logged_user) * logged_user.profile.hours_per_week/5
     tasks = Task.objects.filter(assigned_to=logged_user)
     unfinished_tasks = Task.objects.filter(assigned_to=logged_user, worked_hours__lt = F('total_hours'))
     worked_hours = sum([task.worked_hours for task in tasks])
@@ -45,6 +60,13 @@ def index(request):
     
     # all users in group supervisor
     supervisors = User.objects.filter(groups__name='supervisor')
+    
+    # stats
+    holiday_entitlement, not_taken_holidays, taken_holidays_days, remaining_holidays = calcHoliday(logged_user)
+    days_to_work = calc_days_to_work(logged_user)
+    weeks_worked = days_to_work / 5
+    average_hours_per_week = worked_hours / weeks_worked if weeks_worked > 0 else 0
+    average_hours_per_week_pct = round(average_hours_per_week / 5, 2) if average_hours_per_week < 5 else 100
     
     context = {
         'segment': 'index', 
@@ -58,6 +80,9 @@ def index(request):
         'tasks': unfinished_tasks,
         'supervisors': supervisors,
         'my_supervisor': logged_user.profile.supervisor,
+        'remaining_holidays': remaining_holidays,
+        'average_hours_per_week': average_hours_per_week,
+        'average_hours_per_week_pct': average_hours_per_week_pct,
     }
 
     html_template = loader.get_template('home/index.html')
@@ -119,13 +144,8 @@ def holidays(request):
             if h.from_date < h.to_date:
                 h.save()
                 
-    contract_duration = dt.date(logged_user.profile.contract_end_date.year, logged_user.profile.contract_end_date.month, logged_user.profile.contract_end_date.day) - dt.date(logged_user.profile.contract_start_date.year, logged_user.profile.contract_start_date.month, logged_user.profile.contract_start_date.day)
-    full_months = contract_duration.days // 30
-    holiday_entitlement = round(full_months * 20 / 12,0)
-    not_taken_holidays = logged_user.profile.carry_over_holiday_hours_from_last_semester / logged_user.profile.hours_per_week * 5
+    holiday_entitlement, not_taken_holidays, taken_holidays_days, remaining_holidays = calcHoliday(logged_user)
     taken_holidays = Holiday.objects.filter(by_id=logged_user)
-    taken_holidays_days = sum([np.busday_count(holiday.from_date, holiday.to_date) + 1 for holiday in taken_holidays]) # TODO: add Feiertage
-    remaining_holidays = holiday_entitlement + not_taken_holidays - taken_holidays_days
     
     context = {
         'segment': 'holidays',
