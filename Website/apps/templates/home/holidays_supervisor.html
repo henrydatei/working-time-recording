@@ -1,0 +1,87 @@
+{% extends "layouts/base.html" %}
+{% load date_extras %}
+
+{% block title %} Holiday {% endblock %} 
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+    <!-- [ Main Content ] start -->
+    <div class="pcoded-main-container">
+        <div class="pcoded-wrapper">
+
+            <div class="pcoded-content">
+                <div class="pcoded-inner-content">
+                    <!-- [ breadcrumb ] start -->
+
+                    <!-- [ breadcrumb ] end -->
+                    <div class="main-body">
+                        <div class="page-wrapper">
+                            <!-- [ Main Content ] start -->
+                            <div class="row">
+                                <!--[ Remaining Holiday section ] starts-->
+                                {% for shk_data in shks_data %}
+                                    <div class="col-md-12 col-xl-4">
+                                        <div class="card yearly-sales">
+                                            <div class="card-block">
+                                                <h6 class="mb-4">{{shk_data.profile.user.first_name}} {{shk_data.profile.user.last_name}}: Remaining Holiday</h6>
+                                                <div class="row d-flex align-items-center">
+                                                    <div class="col-9">
+                                                        <h3 class="f-w-300 d-flex align-items-center  m-b-0">{{ shk_data.remaining_holidays|floatformat }} days</h3>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--[ Remaining Holiday section ] end-->
+                                {% endfor %}
+                                <!--[ Taken Holidays ] start-->
+                                <div class="col-xl-12 col-md-6">
+                                    <div class="card Recent-Users">
+                                        <div class="card-header">
+                                            <h5>Taken Holidays</h5>
+                                        </div>
+                                        <div class="card-block px-0 py-3">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>From</th>
+                                                            <th>To</th>
+                                                            <th>Duration</th>
+                                                            <th>By</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for holiday in holidays %}
+                                                            <tr>
+                                                                <td>{{ holiday.from_date }}</td>
+                                                                <td>{{ holiday.to_date }}</td>
+                                                                <td>{{ holiday.from_date|busdays:holiday.to_date }}</td>
+                                                                <td>{{holiday.by_id.first_name}} {{holiday.by_id.last_name}}</td>
+                                                            </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--[ Taken Holidays ] end-->
+                            </div>
+                            <!-- [ Main Content ] end -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <!-- [ Main Content ] end -->            
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

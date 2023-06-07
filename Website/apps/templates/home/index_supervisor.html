@@ -1,0 +1,149 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Dashboard {% endblock %} 
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+    <!-- [ Main Content ] start -->
+    <div class="pcoded-main-container">
+        <div class="pcoded-wrapper">
+
+            <div class="pcoded-content">
+                <div class="pcoded-inner-content">
+                    <!-- [ breadcrumb ] start -->
+
+                    <!-- [ breadcrumb ] end -->
+                    <div class="main-body">
+                        <div class="page-wrapper">
+                            <!-- [ Main Content ] start -->
+                            <div class="row">
+                                {% for shk_data in shks_data %}
+                                    <!--[ Actual Planned Target section ] start-->
+                                    <div class="col-md-6 col-xl-8">
+                                        <div class="card daily-sales">
+                                            <div class="card-block">
+                                                <h6 class="mb-4">{{shk_data.profile.user.first_name}} {{shk_data.profile.user.last_name}}: Actual/Planned/Target (only this semester)</h6>
+                                                <div class="row d-flex align-items-center">
+                                                    <div class="col-9">
+                                                        <h3 class="f-w-300 d-flex align-items-center m-b-0">{{ shk_data.worked_hours|floatformat }}/{{ shk_data.planned_hours|floatformat }} of {{ shk_data.hours_to_work|floatformat }} hours</h3>
+                                                    </div>
+
+                                                    <div class="col-3 text-right">
+                                                        <p class="m-b-0">{{ shk_data.worked_hours_pct }}%, {{ shk_data.planned_hours_pct }}%</p>
+                                                    </div>
+                                                </div>
+                                                <div class="progress m-t-30" style="height: 7px;">
+                                                    <div class="progress-bar progress-c-theme" role="progressbar"
+                                                            style="width: {{ shk_data.worked_hours_pct }}%;" aria-valuenow="{{ shk_data.worked_hours_pct }}" aria-valuemin="0"
+                                                            aria-valuemax="100"></div>
+                                                    <div class="progress-bar progress-c-theme2" role="progressbar"
+                                                            style="width: {{ shk_data.difference_hours_pct }}%;" aria-valuenow="{{ shk_data.difference_hours_pct }}" aria-valuemin="0"
+                                                            aria-valuemax="100"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--[ Actual Planned Target section ] end-->
+                                    <!--[ Excess Capacity section ] starts-->
+                                    <div class="col-md-12 col-xl-4">
+                                        <div class="card yearly-sales">
+                                            <div class="card-block">
+                                                <h6 class="mb-4">{{shk_data.profile.user.first_name}} {{shk_data.profile.user.last_name}}: Excess Capacity + Carryover last Semester</h6>
+                                                <div class="row d-flex align-items-center">
+                                                    <div class="col-9">
+                                                        <h3 class="f-w-300 d-flex align-items-center  m-b-0">{{ shk_data.excess_hours|floatformat }} hours + {{ shk_data.carry_over_hours_from_last_semester|floatformat }} hours</h3>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--[ Excess Capacity section ] end-->
+                                {% endfor %}
+                                <!--[ Recent Tasks ] start-->
+                                <div class="col-xl-8 col-md-6">
+                                    <div class="card Recent-Users">
+                                        <div class="card-header">
+                                            <h5>Recent Tasks</h5>
+                                        </div>
+                                        <div class="card-block px-0 py-3">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover">
+                                                    <tbody>
+                                                    {% for task in tasks %}
+                                                        <tr class="unread">
+                                                            <td>
+                                                                <h6 class="mb-1">{{ task.task_text|truncatechars_html:40}}</h6>
+                                                            </td>
+                                                            <td>
+                                                                <h6 class="text-muted">{{ task.worked_hours|floatformat}} of {{ task.total_hours|floatformat}} hours</h6>
+                                                            </td>
+                                                            <td>
+                                                                <h6 class="text-muted">{{ task.deadline }}</h6>
+                                                            </td>
+                                                            <td>
+                                                                <h6 class="text-muted">{{ task.assigned_to.first_name }} {{ task.assigned_to.last_name }}</h6>
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--[ Recent Tasks ] end-->
+
+                                <!-- [ Add New Task ] start -->
+                                <div class="col-xl-4 col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5>Add new Task</h5>
+                                        </div>
+                                        <div class="card-block">
+                                            <form action = "#", method = "POST">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="formType" value="newTask">
+                                                <div class="form-group">
+                                                    <label for="TaskDescription">Task Description</label>
+                                                    <textarea class="form-control" id="TaskDescription" rows="3" name = "TaskDescription"></textarea>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="plannedHours">Planned hours</label>
+                                                    <input type="number" class="form-control" id="plannedHours" name = "plannedHours">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="deadline">Deadline</label>
+                                                    <input type="date" class="form-control" id="deadline" name = "deadline">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="taskGivenBy">Task given to</label>
+                                                    <select class="form-control" id="taskGivenBy" name = "taskGivenBy">
+                                                        {% for shk in shks %}
+                                                            <option value = {{ shk.user.id }}>{{ shk.user.first_name }} {{ shk.user.last_name }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary">Submit</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- [ Add New Task ] end -->
+                            </div>
+                            <!-- [ Main Content ] end -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <!-- [ Main Content ] end -->            
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
