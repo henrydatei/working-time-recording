@@ -120,7 +120,7 @@
                                                 </div>
                                                 <div class="form-group">
                                                     <label for="taskGivenBy">Task given to</label>
-                                                    <select class="form-control" id="taskGivenBy" name = "taskGivenBy">
+                                                    <select class="form-control" id="taskGivenTo" name = "taskGivenTo">
                                                         {% for shk in shks %}
                                                             <option value = {{ shk.user.id }}>{{ shk.user.first_name }} {{ shk.user.last_name }}</option>
                                                         {% endfor %}

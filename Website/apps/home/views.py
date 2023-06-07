@@ -47,6 +47,12 @@ def index(request):
     
     if logged_user.groups.filter(name='supervisor').exists():
         # user is supervisor
+        # process form
+        if request.method == 'POST':
+            if request.POST["formType"] == "newTask":
+                t = Task(assigner = logged_user, assigned_to = User.objects.get(id=request.POST["taskGivenTo"]), task_text = request.POST["TaskDescription"], total_hours = request.POST["plannedHours"], worked_hours = 0, deadline = request.POST["deadline"])
+                t.save()
+                    
         shks_data = []
         shks = Profile.objects.filter(supervisor=logged_user)
         for shk in shks:
