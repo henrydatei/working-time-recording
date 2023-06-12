@@ -81,16 +81,23 @@ def calc_working_time(user: User) -> Tuple[float, float, float, float]:
 def index(request: HttpRequest):
     logged_user = request.user
     
-    if logged_user.groups.filter(name='supervisor').exists():
-        # user is supervisor
-        # process form
-        if request.method == 'POST':
+    if logged_user.groups.filter(name='supervisor').exists() or logged_user.groups.filter(name='shkofficer').exists():
+        # user is supervisor or shkofficer
+        # process form only if supervisor
+        if request.method == 'POST' and logged_user.groups.filter(name='supervisor').exists():
             if request.POST["formType"] == "newTask":
                 t = Task(assigner = logged_user, assigned_to = User.objects.get(id=request.POST["taskGivenTo"]), task_text = request.POST["TaskDescription"], total_hours = request.POST["plannedHours"], worked_hours = 0, deadline = request.POST["deadline"])
                 t.save()
                     
         shks_data = []
-        shks = Contract.objects.filter(supervisor=logged_user)
+        if logged_user.groups.filter(name='supervisor').exists():
+            # only get shks of supervisor
+            shks = Contract.objects.filter(supervisor=logged_user)
+        else:
+            # get all shks
+            # since a shk can have multiple contracts, we only get the first one
+            shks = [Contract.objects.filter(user=user).first() for user in User.objects.filter(groups__name='shk')]
+        
         for shk in shks:
             hours_to_work, worked_hours, planned_hours, excess_hours = calc_working_time(shk.user)
             worked_hours_pct = round(worked_hours / hours_to_work * 100, 2) if worked_hours < hours_to_work else 100
@@ -101,7 +108,7 @@ def index(request: HttpRequest):
                 'worked_hours_pct': worked_hours_pct,
                 'planned_hours': planned_hours,
                 'planned_hours_pct': planned_hours_pct,
-                'difference_hours_pct': round((planned_hours_pct - worked_hours_pct), 2),
+                'difference_hours_pct': round(planned_hours_pct - worked_hours_pct, 2),
                 'hours_to_work': hours_to_work,
                 'excess_hours': excess_hours,
                 'carry_over_hours_from_last_semester': shk.carry_over_hours_from_last_semester,
@@ -115,7 +122,10 @@ def index(request: HttpRequest):
             'shks_data': shks_data,
         }
         
-        html_template = loader.get_template('home/index_supervisor.html')
+        if logged_user.groups.filter(name='supervisor').exists():
+            html_template = loader.get_template('home/index_supervisor.html')
+        else:
+            html_template = loader.get_template('home/index_officer.html')
     else:
         # user is shk
         # process form
@@ -175,6 +185,8 @@ def tasks(request: HttpRequest):
     if logged_user.groups.filter(name='supervisor').exists():
         shks = Contract.objects.filter(supervisor=logged_user)
         tasks = Task.objects.filter(assigned_to__in=[shk.user for shk in shks]).order_by('-deadline')
+    elif logged_user.groups.filter(name='shkofficer').exists():
+        tasks = Task.objects.all().order_by('-deadline')
     else:
         tasks = Task.objects.filter(assigned_to=logged_user).order_by('-deadline')
     
@@ -205,9 +217,16 @@ def editTask(request: HttpRequest, task_id: int):
 def holidays(request: HttpRequest):
     logged_user = request.user
     
-    if logged_user.groups.filter(name='supervisor').exists():
+    if logged_user.groups.filter(name='supervisor').exists() or logged_user.groups.filter(name='shkofficer').exists():
         shks_data = []
-        shks = Contract.objects.filter(supervisor=logged_user)
+        if logged_user.groups.filter(name='supervisor').exists():
+            # only get shks of supervisor
+            shks = Contract.objects.filter(supervisor=logged_user)
+        else:
+            # get all shks
+            # since a shk can have multiple contracts, we only get the first one
+            shks = [Contract.objects.filter(user=user).first() for user in User.objects.filter(groups__name='shk')]
+        
         for shk in shks:
             holiday_entitlement, not_taken_holidays, taken_holidays_days, remaining_holidays = calc_holiday(shk.user)
             shks_data.append({
