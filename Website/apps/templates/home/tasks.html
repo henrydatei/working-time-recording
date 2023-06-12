@@ -36,7 +36,7 @@
                                                             <th>Planned Hours</th>
                                                             <th>Dealine</th>
                                                             <th>Assigned By</th>
-                                                            {% if user.profile.supervisor %}
+                                                            {% if user.contract.supervisor %}
                                                             <th></th>
                                                             {% else %}
                                                             <th>Assigned To</th>
@@ -51,7 +51,7 @@
                                                                 <td>{{ task.total_hours }}</td>
                                                                 <td>{{ task.deadline }}</td>
                                                                 <td>{{ task.assigner.first_name }} {{ task.assigner.last_name }}</td>
-                                                                {% if user.profile.supervisor %}
+                                                                {% if user.contract.supervisor %}
                                                                 <td>
                                                                     <a href="/editTask/{{ task.id }}" class="label theme-bg text-white f-12">Edit</a>
                                                                 </td>

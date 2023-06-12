@@ -41,8 +41,9 @@ class Holiday(models.Model):
         verbose_name_plural = 'Holidays'
         ordering = ['id']
         
-class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+class Contract(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user', default=None, null=False, blank=True)
     contract_start_date = models.DateField(default=None, null=True, blank=True)
     contract_end_date = models.DateField(default=None, null=True, blank=True)
     hours_per_week = models.FloatField(default=0)
@@ -51,18 +52,9 @@ class Profile(models.Model):
     supervisor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='supervisor', default=None, null=True, blank=True)
 
     def __str__(self):
-        return self.user.username
+        return self.user.username + '\'s contract for ' + str(self.hours_per_week) + ' hours per week'
 
     class Meta:
-        verbose_name = 'Profile'
-        verbose_name_plural = 'Profiles'
+        verbose_name = 'Contract'
+        verbose_name_plural = 'Contracts'
         ordering = ['id']
-        
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        Profile.objects.create(user=instance)
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()

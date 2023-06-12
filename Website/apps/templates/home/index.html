@@ -166,43 +166,6 @@
                                     </div>
                                 </div>
                                 <!-- [ Add New Task ] end -->
-                                
-                                <!-- [ stats ] starts-->
-                                <div class="col-md-6 col-xl-4">
-                                    <div class="card daily-sales">
-                                        <div class="card-block">
-                                            <h6 class="mb-4">&empty; worked hours/week</h6>
-                                            <div class="row d-flex align-items-center">
-                                                <div class="col-9">
-                                                    <h3 class="f-w-300 d-flex align-items-center m-b-0">{{ average_hours_per_week|floatformat }} hours</h3>
-                                                </div>
-
-                                                <div class="col-3 text-right">
-                                                    <p class="m-b-0">{{ average_hours_per_week_pct }}%</p>
-                                                </div>
-                                            </div>
-                                            <div class="progress m-t-30" style="height: 7px;">
-                                                <div class="progress-bar progress-c-theme" role="progressbar"
-                                                        style="width: {{ average_hours_per_week_pct }}%;" aria-valuenow="{{ average_hours_per_week_pct }}" aria-valuemin="0"
-                                                        aria-valuemax="100"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-12 col-xl-4">
-                                    <div class="card yearly-sales">
-                                        <div class="card-block">
-                                            <h6 class="mb-4">Remaining Holiday</h6>
-                                            <div class="row d-flex align-items-center">
-                                                <div class="col-9">
-                                                    <h3 class="f-w-300 d-flex align-items-center  m-b-0">{{ remaining_holidays|floatformat }} days</h3>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- [ stats ] end-->
-
                             </div>
                             <!-- [ Main Content ] end -->
                         </div>

@@ -10,7 +10,7 @@ from django.template import loader
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
 
-from .models import Task, Holiday, Profile
+from .models import Task, Holiday, Contract
 from django.contrib.auth.models import User
 from django.db.models import F
 
@@ -18,22 +18,32 @@ import datetime as dt
 import numpy as np
 
 def calc_holiday(user: User):
-    contract_duration = dt.date(user.profile.contract_end_date.year, user.profile.contract_end_date.month, user.profile.contract_end_date.day) - dt.date(user.profile.contract_start_date.year, user.profile.contract_start_date.month, user.profile.contract_start_date.day)
-    full_months = contract_duration.days // 30
-    holiday_entitlement = round(full_months * 20 / 12,0)
-    not_taken_holidays = user.profile.carry_over_holiday_hours_from_last_semester / user.profile.hours_per_week * 5
+    contracts = Contract.objects.filter(user=user)
+    holiday_entitlement_sum, not_taken_holidays_sum = 0, 0
+    for contract in contracts:
+        contract_duration = dt.date(contract.contract_end_date.year, contract.contract_end_date.month, contract.contract_end_date.day) - dt.date(contract.contract_start_date.year, contract.contract_start_date.month, contract.contract_start_date.day)
+        full_months = contract_duration.days // 30
+        holiday_entitlement = round(full_months * 20 / 12,0)
+        not_taken_holidays = contract.carry_over_holiday_hours_from_last_semester / contract.hours_per_week * 5
+        holiday_entitlement_sum += holiday_entitlement
+        not_taken_holidays_sum += not_taken_holidays
+    
     taken_holidays = Holiday.objects.filter(by_id=user)
     taken_holidays_days = sum([np.busday_count(holiday.from_date, holiday.to_date) + 1 for holiday in taken_holidays]) # TODO: add Feiertage
-    remaining_holidays = holiday_entitlement + not_taken_holidays - taken_holidays_days
+    remaining_holidays = holiday_entitlement_sum + not_taken_holidays_sum - taken_holidays_days
     
-    return holiday_entitlement, not_taken_holidays, taken_holidays_days, remaining_holidays
+    return holiday_entitlement_sum, not_taken_holidays_sum, taken_holidays_days, remaining_holidays
 
-def calc_days_to_work(user: User):
-    days_to_work = np.busday_count(user.profile.contract_start_date, dt.date.today()) + 1 # TODO: add Feiertage, add Holidays
+def calc_days_to_work(contract: Contract):
+    days_to_work = np.busday_count(contract.contract_start_date, dt.date.today()) + 1 # TODO: add Feiertage, add Holidays
     return days_to_work
 
 def calc_working_time(user: User):
-    hours_to_work = calc_days_to_work(user) * user.profile.hours_per_week/5
+    contracts = Contract.objects.filter(user=user)
+    hours_to_work = 0
+    for contract in contracts:
+        hours_to_work += calc_days_to_work(contract) * contract.hours_per_week/5
+    
     tasks = Task.objects.filter(assigned_to=user)
     worked_hours = sum([task.worked_hours for task in tasks])
     planned_hours = sum([task.total_hours for task in tasks])
@@ -54,13 +64,13 @@ def index(request):
                 t.save()
                     
         shks_data = []
-        shks = Profile.objects.filter(supervisor=logged_user)
+        shks = Contract.objects.filter(supervisor=logged_user)
         for shk in shks:
             hours_to_work, worked_hours, planned_hours, excess_hours = calc_working_time(shk.user)
             worked_hours_pct = round(worked_hours / hours_to_work * 100, 2) if worked_hours < hours_to_work else 100
             planned_hours_pct = round(planned_hours / hours_to_work * 100, 2) if planned_hours < hours_to_work else 100
             shks_data.append({
-                'profile': shk,
+                'contract': shk,
                 'worked_hours': worked_hours,
                 'worked_hours_pct': worked_hours_pct,
                 'planned_hours': planned_hours,
@@ -104,13 +114,6 @@ def index(request):
         # all users in group supervisor
         supervisors = User.objects.filter(groups__name='supervisor')
         
-        # stats
-        holiday_entitlement, not_taken_holidays, taken_holidays_days, remaining_holidays = calc_holiday(logged_user)
-        days_to_work = calc_days_to_work(logged_user)
-        weeks_worked = days_to_work / 5
-        average_hours_per_week = worked_hours / weeks_worked if weeks_worked > 0 else 0
-        average_hours_per_week_pct = round(average_hours_per_week / 5, 2) if average_hours_per_week < 5 else 100
-        
         context = {
             'segment': 'index', 
             'hours_to_work': hours_to_work,  
@@ -118,14 +121,11 @@ def index(request):
             'worked_hours_pct': worked_hours_pct, 
             'planned_hours': planned_hours, 
             'planned_hours_pct': planned_hours_pct,
-            'carry_over_hours_from_last_semester': logged_user.profile.carry_over_hours_from_last_semester,
+            'carry_over_hours_from_last_semester': sum([contract.carry_over_hours_from_last_semester for contract in Contract.objects.filter(user=logged_user)]),
             'excess_hours': excess_hours,
             'tasks': unfinished_tasks,
             'supervisors': supervisors,
-            'my_supervisor': logged_user.profile.supervisor,
-            'remaining_holidays': remaining_holidays,
-            'average_hours_per_week': average_hours_per_week,
-            'average_hours_per_week_pct': average_hours_per_week_pct,
+            'my_supervisor': Contract.objects.filter(user=logged_user).first().supervisor
         }
 
         html_template = loader.get_template('home/index.html')
@@ -147,7 +147,7 @@ def tasks(request):
         t.save()
     
     if logged_user.groups.filter(name='supervisor').exists():
-        shks = Profile.objects.filter(supervisor=logged_user)
+        shks = Contract.objects.filter(supervisor=logged_user)
         tasks = Task.objects.filter(assigned_to__in=[shk.user for shk in shks]).order_by('-deadline')
     else:
         tasks = Task.objects.filter(assigned_to=logged_user).order_by('-deadline')
@@ -181,11 +181,11 @@ def holidays(request):
     
     if logged_user.groups.filter(name='supervisor').exists():
         shks_data = []
-        shks = Profile.objects.filter(supervisor=logged_user)
+        shks = Contract.objects.filter(supervisor=logged_user)
         for shk in shks:
             holiday_entitlement, not_taken_holidays, taken_holidays_days, remaining_holidays = calc_holiday(shk.user)
             shks_data.append({
-                'profile': shk,
+                'contract': shk,
                 'remaining_holidays': remaining_holidays,
             })
         holidays = Holiday.objects.filter(by_id__in=[shk.user for shk in shks]).order_by('-from_date')
