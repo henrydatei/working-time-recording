@@ -5,7 +5,7 @@ Copyright (c) 2019 - present AppSeed.us
 
 from django import template
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpRequest
 from django.template import loader
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
@@ -17,7 +17,9 @@ from django.db.models import F
 import datetime as dt
 import numpy as np
 
-def calc_holiday(user: User):
+from typing import Tuple
+
+def calc_holiday(user: User) -> Tuple[float, float, float, float]:
     contracts = Contract.objects.filter(user=user)
     holiday_entitlement_sum, not_taken_holidays_sum = 0, 0
     for contract in contracts:
@@ -34,11 +36,11 @@ def calc_holiday(user: User):
     
     return holiday_entitlement_sum, not_taken_holidays_sum, taken_holidays_days, remaining_holidays
 
-def calc_days_to_work(contract: Contract):
-    days_to_work = np.busday_count(contract.contract_start_date, dt.date.today()) + 1 # TODO: add Feiertage, add Holidays
+def calc_days_to_work(contract: Contract) -> int:
+    days_to_work = np.busday_count(contract.contract_start_date, min(dt.date.today(), contract.contract_end_date)) + 1 # TODO: add Feiertage, add Holidays
     return days_to_work
 
-def calc_working_time(user: User):
+def calc_working_time(user: User) -> Tuple[float, float, float, float]:
     contracts = Contract.objects.filter(user=user)
     hours_to_work = 0
     for contract in contracts:
@@ -52,7 +54,7 @@ def calc_working_time(user: User):
     return hours_to_work, worked_hours, planned_hours, excess_hours
 
 @login_required(login_url="/login/")
-def index(request):
+def index(request: HttpRequest):
     logged_user = request.user
     
     if logged_user.groups.filter(name='supervisor').exists():
@@ -133,7 +135,7 @@ def index(request):
     return HttpResponse(html_template.render(context, request))
 
 @login_required(login_url="/login/")
-def tasks(request):
+def tasks(request: HttpRequest):
     logged_user = request.user
     
     # process Form
@@ -161,7 +163,7 @@ def tasks(request):
     return HttpResponse(html_template.render(context, request))
 
 @login_required(login_url="/login/")
-def editTask(request, task_id):
+def editTask(request: HttpRequest, task_id: int):
     logged_user = request.user
     task = get_object_or_404(Task, pk=task_id, assigned_to=logged_user)
     supervisors = User.objects.filter(groups__name='supervisor')
@@ -176,7 +178,7 @@ def editTask(request, task_id):
     return HttpResponse(html_template.render(context, request))
 
 @login_required(login_url="/login/")
-def holidays(request):
+def holidays(request: HttpRequest):
     logged_user = request.user
     
     if logged_user.groups.filter(name='supervisor').exists():
@@ -227,7 +229,7 @@ def holidays(request):
     return HttpResponse(html_template.render(context, request))
 
 @login_required(login_url="/login/")
-def editHoliday(request, holiday_id):
+def editHoliday(request: HttpRequest, holiday_id: int):
     logged_user = request.user
     holiday = get_object_or_404(Holiday, pk=holiday_id, by_id=logged_user)
     
@@ -240,7 +242,7 @@ def editHoliday(request, holiday_id):
     return HttpResponse(html_template.render(context, request))
 
 @login_required(login_url="/login/")
-def pages(request):
+def pages(request: HttpRequest):
     context = {}
     # All resource paths end in .html.
     # Pick out the html file name from the url. And load that template.
