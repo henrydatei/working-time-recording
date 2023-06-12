@@ -20,6 +20,14 @@ import numpy as np
 from typing import Tuple
 
 def calc_holiday(user: User) -> Tuple[float, float, float, float]:
+    """This function calculates the holiday entitlement, the not taken holidays, the taken holidays and the remaining holidays for a given user. Since the holiday entitlement is calculated based on the contract duration, the function iterates over all contracts of the user. Important are the number of full months worked, for 12 months you get 20 days off.
+
+    Args:
+        user (User): The user for which the holiday entitlement should be calculated.
+
+    Returns:
+        Tuple[float, float, float, float]: holiday entitlement, not taken holidays, taken holidays days, remaining holidays in days
+    """
     contracts = Contract.objects.filter(user=user)
     holiday_entitlement_sum, not_taken_holidays_sum = 0, 0
     for contract in contracts:
@@ -37,10 +45,26 @@ def calc_holiday(user: User) -> Tuple[float, float, float, float]:
     return holiday_entitlement_sum, not_taken_holidays_sum, taken_holidays_days, remaining_holidays
 
 def calc_days_to_work(contract: Contract) -> int:
+    """This function calculates the number of days to work for a given contract. It uses the contract start date and the contract end date. If the contract end date is in the future, the current date is used instead.
+
+    Args:
+        contract (Contract): The contract for which the number of days to work should be calculated.
+
+    Returns:
+        int: number of days to work
+    """
     days_to_work = np.busday_count(contract.contract_start_date, min(dt.date.today(), contract.contract_end_date)) + 1 # TODO: add Feiertage, add Holidays
     return days_to_work
 
 def calc_working_time(user: User) -> Tuple[float, float, float, float]:
+    """This function calculates the hours to work, the worked hours, the planned hours and the excess hours for a given user. It uses the contract start date and the contract end date. If the contract end date is in the future, the current date is used instead. We do this for all contracts of the user and sum up the hours.
+
+    Args:
+        user (User): The user for which the working time should be calculated.
+
+    Returns:
+        Tuple[float, float, float, float]: hours to work, worked hours, planned hours, excess hours
+    """
     contracts = Contract.objects.filter(user=user)
     hours_to_work = 0
     for contract in contracts:
