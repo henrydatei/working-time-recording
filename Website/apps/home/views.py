@@ -77,20 +77,42 @@ def calc_working_time(user: User) -> Tuple[float, float, float, float]:
     
     return hours_to_work, worked_hours, planned_hours, excess_hours
 
+def is_supervisor(user: User) -> bool:
+    """This function checks if a given user is a supervisor.
+
+    Args:
+        user (User): The user to check.
+
+    Returns:
+        bool: True if the user is a supervisor, False otherwise.
+    """
+    return user.groups.filter(name='supervisor').exists()
+
+def is_shkofficer(user: User) -> bool:
+    """This function checks if a given user is a shkofficer.
+
+    Args:
+        user (User): The user to check.
+
+    Returns:
+        bool: True if the user is a shkofficer, False otherwise.
+    """
+    return user.groups.filter(name='shkofficer').exists()
+
 @login_required(login_url="/login/")
 def index(request: HttpRequest):
     logged_user = request.user
     
-    if logged_user.groups.filter(name='supervisor').exists() or logged_user.groups.filter(name='shkofficer').exists():
+    if is_supervisor(logged_user) or is_shkofficer(logged_user):
         # user is supervisor or shkofficer
         # process form only if supervisor
-        if request.method == 'POST' and logged_user.groups.filter(name='supervisor').exists():
+        if request.method == 'POST' and is_supervisor(logged_user):
             if request.POST["formType"] == "newTask":
                 t = Task(assigner = logged_user, assigned_to = User.objects.get(id=request.POST["taskGivenTo"]), task_text = request.POST["TaskDescription"], total_hours = request.POST["plannedHours"], worked_hours = 0, deadline = request.POST["deadline"])
                 t.save()
                     
         shks_data = []
-        if logged_user.groups.filter(name='supervisor').exists():
+        if is_supervisor(logged_user):
             # only get shks of supervisor
             shks = Contract.objects.filter(supervisor=logged_user)
         else:
@@ -122,7 +144,7 @@ def index(request: HttpRequest):
             'shks_data': shks_data,
         }
         
-        if logged_user.groups.filter(name='supervisor').exists():
+        if is_supervisor(logged_user):
             html_template = loader.get_template('home/index_supervisor.html')
         else:
             html_template = loader.get_template('home/index_officer.html')
@@ -182,10 +204,10 @@ def tasks(request: HttpRequest):
         t.assigner = User.objects.get(id=request.POST["taskGivenBy"])
         t.save()
     
-    if logged_user.groups.filter(name='supervisor').exists():
+    if is_supervisor(logged_user):
         shks = Contract.objects.filter(supervisor=logged_user)
         tasks = Task.objects.filter(assigned_to__in=[shk.user for shk in shks]).order_by('-deadline')
-    elif logged_user.groups.filter(name='shkofficer').exists():
+    elif is_shkofficer(logged_user):
         tasks = Task.objects.all().order_by('-deadline')
     else:
         tasks = Task.objects.filter(assigned_to=logged_user).order_by('-deadline')
@@ -217,9 +239,9 @@ def editTask(request: HttpRequest, task_id: int):
 def holidays(request: HttpRequest):
     logged_user = request.user
     
-    if logged_user.groups.filter(name='supervisor').exists() or logged_user.groups.filter(name='shkofficer').exists():
+    if is_supervisor(logged_user) or is_shkofficer(logged_user):
         shks_data = []
-        if logged_user.groups.filter(name='supervisor').exists():
+        if is_supervisor(logged_user):
             # only get shks of supervisor
             shks = Contract.objects.filter(supervisor=logged_user)
         else:
