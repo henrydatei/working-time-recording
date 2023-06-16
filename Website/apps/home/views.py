@@ -16,17 +16,27 @@ from django.db.models import F
 
 import datetime as dt
 import numpy as np
+import holidays as hd
 
 from typing import Tuple
 
-def calc_holiday(user: User) -> Tuple[float, float, float, float]:
+def get_free_days(from_date: dt.date, to_date: dt.date) -> dict:
+    all_holidays = hd.country_holidays("DE", subdiv = "SN", years = [y for y in range(from_date.year, to_date.year + 1)])
+    free_days = {}
+    for date, name in sorted(all_holidays.items()):
+        if from_date <= date <= to_date:
+            free_days[date] = name
+            
+    return free_days 
+
+def calc_holiday(user: User) -> Tuple[float, float, int, float]:
     """This function calculates the holiday entitlement, the not taken holidays, the taken holidays and the remaining holidays for a given user. Since the holiday entitlement is calculated based on the contract duration, the function iterates over all contracts of the user. Important are the number of full months worked, for 12 months you get 20 days off.
 
     Args:
         user (User): The user for which the holiday entitlement should be calculated.
 
     Returns:
-        Tuple[float, float, float, float]: holiday entitlement, not taken holidays, taken holidays days, remaining holidays in days
+        Tuple[float, float, float, float]: holiday entitlement, not taken holidays in last semester, taken holidays days, remaining holidays in days
     """
     contracts = Contract.objects.filter(user=user)
     holiday_entitlement_sum, not_taken_holidays_sum = 0, 0
@@ -39,13 +49,13 @@ def calc_holiday(user: User) -> Tuple[float, float, float, float]:
         not_taken_holidays_sum += not_taken_holidays
     
     taken_holidays = Holiday.objects.filter(by_id=user)
-    taken_holidays_days = sum([np.busday_count(holiday.from_date, holiday.to_date) + 1 for holiday in taken_holidays]) # TODO: add Feiertage
+    taken_holidays_days = sum([np.busday_count(holiday.from_date, holiday.to_date) + 1 - len(get_free_days(holiday.from_date, holiday.to_date).keys()) for holiday in taken_holidays])
     remaining_holidays = holiday_entitlement_sum + not_taken_holidays_sum - taken_holidays_days
     
     return holiday_entitlement_sum, not_taken_holidays_sum, taken_holidays_days, remaining_holidays
 
 def calc_days_to_work(contract: Contract) -> int:
-    """This function calculates the number of days to work for a given contract. It uses the contract start date and the contract end date. If the contract end date is in the future, the current date is used instead.
+    """This function calculates the number of days you should have worked until now. If the contract is over it will return the total number of ways worked in the whole contract.
 
     Args:
         contract (Contract): The contract for which the number of days to work should be calculated.
