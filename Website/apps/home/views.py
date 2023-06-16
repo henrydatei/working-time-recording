@@ -27,7 +27,22 @@ def get_free_days(from_date: dt.date, to_date: dt.date) -> dict:
         if from_date <= date <= to_date:
             free_days[date] = name
             
-    return free_days 
+    return free_days
+
+def business_days(from_date: dt.date, to_date: dt.date) -> int:
+    """A proper way to calculate the number of business days between 2 dates. np.busday_count does exclude the to_date but we want to include it. Therefore we add 1 if the to_date is not a weekend.
+
+    Args:
+        from_date (dt.date): from date
+        to_date (dt.date): to date
+
+    Returns:
+        int: The number of business days between the two dates.
+    """
+    if to_date.weekday() >= 5:
+        return np.busday_count(from_date, to_date)
+    else:
+        return np.busday_count(from_date, to_date) + 1
 
 def calc_holiday(user: User) -> Tuple[float, float, int, float]:
     """This function calculates the holiday entitlement, the not taken holidays, the taken holidays and the remaining holidays for a given user. Since the holiday entitlement is calculated based on the contract duration, the function iterates over all contracts of the user. Important are the number of full months worked, for 12 months you get 20 days off.
@@ -49,7 +64,7 @@ def calc_holiday(user: User) -> Tuple[float, float, int, float]:
         not_taken_holidays_sum += not_taken_holidays
     
     taken_holidays = Holiday.objects.filter(by_id=user)
-    taken_holidays_days = sum([np.busday_count(holiday.from_date, holiday.to_date) + 1 - len(get_free_days(holiday.from_date, holiday.to_date).keys()) for holiday in taken_holidays])
+    taken_holidays_days = sum([business_days(holiday.from_date, holiday.to_date) - len(get_free_days(holiday.from_date, holiday.to_date).keys()) for holiday in taken_holidays])
     remaining_holidays = holiday_entitlement_sum + not_taken_holidays_sum - taken_holidays_days
     
     return holiday_entitlement_sum, not_taken_holidays_sum, taken_holidays_days, remaining_holidays
@@ -63,7 +78,8 @@ def calc_days_to_work(contract: Contract) -> int:
     Returns:
         int: number of days to work
     """
-    days_to_work = np.busday_count(contract.contract_start_date, min(dt.date.today(), contract.contract_end_date)) + 1 # TODO: add Feiertage, add Holidays
+    free_days = len(get_free_days(contract.contract_start_date, min(dt.date.today(), contract.contract_end_date)).keys())
+    days_to_work = business_days(contract.contract_start_date, min(dt.date.today(), contract.contract_end_date)) - free_days
     return days_to_work
 
 def calc_working_time(user: User) -> Tuple[float, float, float, float]:
@@ -79,6 +95,10 @@ def calc_working_time(user: User) -> Tuple[float, float, float, float]:
     hours_to_work = 0
     for contract in contracts:
         hours_to_work += calc_days_to_work(contract) * contract.hours_per_week/5
+        
+    taken_holidays = Holiday.objects.filter(by_id=user)
+    taken_holidays_days = sum([business_days(holiday.from_date, holiday.to_date) - len(get_free_days(holiday.from_date, holiday.to_date).keys()) for holiday in taken_holidays])
+    hours_to_work -= taken_holidays_days * contract.hours_per_week/5
     
     tasks = Task.objects.filter(assigned_to=user)
     worked_hours = sum([task.worked_hours for task in tasks])
