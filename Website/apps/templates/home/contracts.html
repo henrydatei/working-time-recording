@@ -1,0 +1,95 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Contracts {% endblock %} 
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+    <!-- [ Main Content ] start -->
+    <div class="pcoded-main-container">
+        <div class="pcoded-wrapper">
+
+            <div class="pcoded-content">
+                <div class="pcoded-inner-content">
+                    <!-- [ breadcrumb ] start -->
+
+                    <!-- [ breadcrumb ] end -->
+                    <div class="main-body">
+                        <div class="page-wrapper">
+                            <!-- [ Main Content ] start -->
+                            <div class="row">
+                                <!--[ All Contracts ] start-->
+                                <div class="col-xl-12 col-md-6">
+                                    <div class="card Recent-Users">
+                                        <div class="card-header">
+                                            <h5>All Contracts</h5>
+                                        </div>
+                                        <div class="card-block px-0 py-3">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Name</th>
+                                                            <th>From</th>
+                                                            <th>To</th>
+                                                            <th>Hours per week</th>
+                                                            <th>Supervisor</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for shk in shks %}
+                                                            <tr class = "bold">
+                                                                <td>{{shk.first_name}} {{shk.last_name}}</td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                            </tr>
+                                                            {% for contract in shk.contracts %}
+                                                                <tr>
+                                                                    <td>&nbsp; Contract:</td>
+                                                                    <td>{{contract.contract_start_date}}</td>
+                                                                    <td>{{contract.contract_end_date}}</td>
+                                                                    <td>{{contract.hours_per_week|floatformat}}</td>
+                                                                    <td>{{contract.supervisor.first_name}} {{contract.supervisor.last_name}}</td>
+                                                                </tr>
+                                                                {% for contract_change in contract.contract_changes %}
+                                                                    <tr class = "lighter">
+                                                                        <td>&nbsp;&nbsp; Contract Change:</td>
+                                                                        <td>{{contract_change.from_date}}</td>
+                                                                        {% if contract_change.to_date %}
+                                                                            <td>{{contract_change.to_date}}</td>
+                                                                        {% else %}
+                                                                            <td>{{contract.contract_end_date}}</td>
+                                                                        {% endif %}
+                                                                        <td>{{contract_change.hours_per_week|floatformat}}</td>
+                                                                        <td></td>
+                                                                    </tr>
+                                                                {% endfor %}
+                                                            {% endfor %}
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--[ All Contracts ] end-->
+
+                            </div>
+                            <!-- [ Main Content ] end -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <!-- [ Main Content ] end -->            
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

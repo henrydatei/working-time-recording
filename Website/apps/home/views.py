@@ -340,6 +340,30 @@ def editHoliday(request: HttpRequest, holiday_id: int):
     return HttpResponse(html_template.render(context, request))
 
 @login_required(login_url="/login/")
+def contracts(request: HttpRequest):
+    logged_user = request.user
+    
+    if is_shkofficer(logged_user):
+        shks = User.objects.filter(groups__name='shk')
+    elif is_supervisor(logged_user):
+        shks = list(set([contract.user for contract in Contract.objects.filter(supervisor=logged_user)]))
+    else:
+        shks = User.objects.filter(id=logged_user.id)
+    
+    for shk in shks:
+        shk.contracts = Contract.objects.filter(user=shk)
+        for contract in shk.contracts:
+            contract.contract_changes = ContractChange.objects.filter(contract_id=contract)
+    
+    context = {
+        'segment': 'contracts',
+        'shks': shks,
+    }
+    
+    html_template = loader.get_template('home/contracts.html')
+    return HttpResponse(html_template.render(context, request))
+
+@login_required(login_url="/login/")
 def pages(request: HttpRequest):
     context = {}
     # All resource paths end in .html.

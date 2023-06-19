@@ -121,6 +121,14 @@ strong {
   font-weight: 400;
 }
 
+.bold {
+  font-weight: bold;
+}
+
+.lighter {
+  font-weight: lighter;
+}
+
 .img-radius {
   border-radius: 50%;
 }

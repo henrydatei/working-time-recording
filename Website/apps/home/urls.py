@@ -13,6 +13,9 @@ urlpatterns = [
     path('holidays/', views.holidays, name='holidays'),
     # Edit Holiday page
     path('editHoliday/<int:holiday_id>', views.editHoliday, name='editHoliday'),
+    
+    # AllContracts page
+    path('contracts/', views.contracts, name='contracts'),
 
     # Matches any html file
     re_path(r'^.*\.*', views.pages, name='pages'),
