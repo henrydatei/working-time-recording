@@ -5,7 +5,7 @@ from django.template import loader
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
 
-from .models import Task, Holiday, Contract
+from .models import Task, Holiday, Contract, ContractChange
 from django.contrib.auth.models import User
 from django.db.models import F
 
@@ -64,17 +64,18 @@ def calc_holiday(user: User) -> Tuple[float, float, int, float]:
     
     return holiday_entitlement_sum, not_taken_holidays_sum, taken_holidays_days, remaining_holidays
 
-def calc_days_to_work(contract: Contract) -> int:
-    """This function calculates the number of days you should have worked until now. If the contract is over it will return the total number of ways worked in the whole contract.
+def calc_days_to_work(from_date: dt.date, to_date: dt.date) -> int:
+    """This function calculates the number of days you should have worked until now. It uses the contract start date and the contract end date. If the contract end date is in the future, the current date is used instead.
 
     Args:
-        contract (Contract): The contract for which the number of days to work should be calculated.
+        from_date (dt.date): Beginning of the contract.
+        to_date (dt.Date): End of the contract.
 
     Returns:
         int: number of days to work
     """
-    free_days = len(get_free_days(contract.contract_start_date, min(dt.date.today(), contract.contract_end_date)).keys())
-    days_to_work = business_days(contract.contract_start_date, min(dt.date.today(), contract.contract_end_date)) - free_days
+    free_days = len(get_free_days(from_date, min(dt.date.today(), to_date)).keys())
+    days_to_work = business_days(from_date, min(dt.date.today(), to_date)) - free_days
     return days_to_work
 
 def calc_working_time(user: User) -> Tuple[float, float, float, float]:
@@ -89,7 +90,14 @@ def calc_working_time(user: User) -> Tuple[float, float, float, float]:
     contracts = Contract.objects.filter(user=user)
     hours_to_work = 0
     for contract in contracts:
-        hours_to_work += calc_days_to_work(contract) * contract.hours_per_week/5
+        hours_to_work += calc_days_to_work(contract.contract_start_date, contract.contract_end_date) * contract.hours_per_week/5
+        for contract_change in ContractChange.objects.filter(contract_id=contract):
+            start_date = contract_change.from_date
+            if contract_change.to_date is None:
+                end_date = contract.contract_end_date
+            else:
+                end_date = contract_change.to_date
+            hours_to_work += calc_days_to_work(start_date, end_date) * (contract_change.hours_per_week/5 - contract.hours_per_week/5)
         
     taken_holidays = Holiday.objects.filter(by_id=user)
     taken_holidays_days = sum([business_days(holiday.from_date, holiday.to_date) - len(get_free_days(holiday.from_date, holiday.to_date).keys()) for holiday in taken_holidays])

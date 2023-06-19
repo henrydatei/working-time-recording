@@ -2,7 +2,7 @@ from django.test import TestCase
 
 import datetime as dt
 
-from .models import Holiday, Contract, Task
+from .models import Holiday, Contract, Task, ContractChange
 from django.contrib.auth.models import User
 from .views import calc_holiday, calc_days_to_work, calc_working_time, get_free_days, business_days
 
@@ -117,14 +117,14 @@ class FunctionsTests(TestCase):
         """
         u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
         c = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,12), contract_end_date=dt.date(2023,6,18), hours_per_week=5) # 1 week
-        self.assertEqual(calc_days_to_work(c), 5)
+        self.assertEqual(calc_days_to_work(c.contract_start_date, c.contract_end_date), 5)
         
     def test_days_to_work_holiday(self):
         """Test if the correct number of days to work of a contract is calculated. 1 week with 1 free day
         """
         u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
         c = Contract.objects.create(user=u, contract_start_date=dt.date(2023,5,1), contract_end_date=dt.date(2023,5,7), hours_per_week=5) # 1 week
-        self.assertEqual(calc_days_to_work(c), 4)
+        self.assertEqual(calc_days_to_work(c.contract_start_date, c.contract_end_date), 4)
         
     def test_hours_to_work_no_work(self):
         """Test if the correct number of hours to work of a contract is calculated. Contract is one week long, so 5 hours to work
@@ -164,3 +164,36 @@ class FunctionsTests(TestCase):
         c = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,12), contract_end_date=dt.date(2023,6,18), hours_per_week=5) # 1 week
         t = Task.objects.create(assigned_to=u, assigner=u, task_text='Test task', total_hours=4, worked_hours=2, deadline=dt.date(2023,6,18))
         self.assertEqual(calc_working_time(u), (5.0, 2.0, 4.0, 3.0))
+        
+    def test_hours_to_work_contract_change(self):
+        """Test if the correct number of hours to work of a contract is calculated. Contract is one week long, so 5 hours to work, and was changed for one day to 10 hours per week -> 6 hours to work
+        """
+        u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
+        c = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,12), contract_end_date=dt.date(2023,6,18), hours_per_week=5) # 1 week
+        cc = ContractChange.objects.create(contract_id=c, from_date=dt.date(2023,6,13), to_date=dt.date(2023,6,13), hours_per_week=10)
+        self.assertEqual(calc_working_time(u), (6.0, 0.0, 0.0, 6.0))
+        
+    def test_hours_to_work_contract_change_weekend(self):
+        """Test if the correct number of hours to work of a contract is calculated. Contract is one week long, so 5 hours to work, and was changed for one day (weekend) to 10 hours per week -> 5 hours to work
+        """
+        u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
+        c = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,12), contract_end_date=dt.date(2023,6,18), hours_per_week=5) # 1 week
+        cc = ContractChange.objects.create(contract_id=c, from_date=dt.date(2023,6,17), to_date=dt.date(2023,6,17), hours_per_week=10)
+        self.assertEqual(calc_working_time(u), (5.0, 0.0, 0.0, 5.0))
+        
+    def test_hours_to_work_contract_change_open_end(self):
+        """Test if the correct number of hours to work of a contract is calculated. Contract is one week long, so 5 hours to work, and was changed middle of the week to 10 hours per week (open end = till end of contract) -> 8 hours to work
+        """
+        u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
+        c = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,12), contract_end_date=dt.date(2023,6,18), hours_per_week=5) # 1 week
+        cc = ContractChange.objects.create(contract_id=c, from_date=dt.date(2023,6,14), hours_per_week=10)
+        self.assertEqual(calc_working_time(u), (8.0, 0.0, 0.0, 8.0))
+        
+    def test_hours_to_work_contract_change_two_changes_open_end(self):
+        """Test if the correct number of hours to work of a contract is calculated. Contract is one week long, so 5 hours to work, and was changed middle of the week to 10 hours per week and later changed to 20 hours per week -> 12 hours to work
+        """
+        u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
+        c = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,12), contract_end_date=dt.date(2023,6,18), hours_per_week=5) # 1 week
+        cc1 = ContractChange.objects.create(contract_id=c, from_date=dt.date(2023,6,14), to_date=dt.date(2023,6,14), hours_per_week=10)
+        cc2 = ContractChange.objects.create(contract_id=c, from_date=dt.date(2023,6,15), hours_per_week=20)
+        self.assertEqual(calc_working_time(u), (12.0, 0.0, 0.0, 12.0))
