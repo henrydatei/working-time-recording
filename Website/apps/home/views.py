@@ -24,6 +24,13 @@ def get_free_days(from_date: dt.date, to_date: dt.date) -> dict:
             
     return free_days
 
+def get_employment_time(user: User) -> Tuple[dt.date, dt.date]:
+    start_dates = [contract.contract_start_date for contract in Contract.objects.filter(user=user) if contract.contract_start_date <= dt.date.today() <= contract.contract_end_date]
+    end_dates = [contract.contract_end_date for contract in Contract.objects.filter(user=user) if contract.contract_start_date <= dt.date.today() <= contract.contract_end_date]
+    
+    return min(start_dates), max(end_dates)
+            
+
 def business_days(from_date: dt.date, to_date: dt.date) -> int:
     """A proper way to calculate the number of business days between 2 dates. np.busday_count does exclude the to_date but we want to include it. Therefore we add 1 if the to_date is not a weekend.
 

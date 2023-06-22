@@ -1,10 +1,11 @@
 from django.test import TestCase
 
 import datetime as dt
+from freezegun import freeze_time
 
 from .models import Holiday, Contract, Task, ContractChange
 from django.contrib.auth.models import User
-from .views import calc_holiday, calc_days_to_work, calc_working_time, get_free_days, business_days
+from .views import calc_holiday, calc_days_to_work, calc_working_time, get_free_days, business_days, get_employment_time
 
 # Create your tests here.
 
@@ -197,3 +198,30 @@ class FunctionsTests(TestCase):
         cc1 = ContractChange.objects.create(contract_id=c, from_date=dt.date(2023,6,14), to_date=dt.date(2023,6,14), hours_per_week=10)
         cc2 = ContractChange.objects.create(contract_id=c, from_date=dt.date(2023,6,15), hours_per_week=20)
         self.assertEqual(calc_working_time(u), (12.0, 0.0, 0.0, 12.0))
+    
+    @freeze_time("2023-06-22")    
+    def test_employment_time_standard_contract(self):
+        """User has one standard contract, so employment time is from contract start date to contract end date, a second contract was made but it is in the middle of the first contract, so it is not relevant for the employment time
+        """
+        u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
+        c = Contract.objects.create(user=u, contract_start_date=dt.date(2023,4,1), contract_end_date=dt.date(2023,9,30), hours_per_week=5)
+        c2 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,15), contract_end_date=dt.date(2023,6,24), hours_per_week=5)
+        self.assertEqual(get_employment_time(u), (dt.date(2023,4,1), dt.date(2023,9,30)))
+    
+    @freeze_time("2023-06-22")    
+    def test_employment_time_extending(self):
+        """User has contract, so employment time is from contract start date to contract end date, a second contract was made which extends over the first contract
+        """
+        u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
+        c = Contract.objects.create(user=u, contract_start_date=dt.date(2023,4,1), contract_end_date=dt.date(2023,8,30), hours_per_week=5)
+        c2 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,5,1), contract_end_date=dt.date(2023,9,30), hours_per_week=5)
+        self.assertEqual(get_employment_time(u), (dt.date(2023,4,1), dt.date(2023,9,30)))
+        
+    @freeze_time("2023-06-22")    
+    def test_employment_time_last_semester_contract(self):
+        """User has standard contract and a contract from last semester which should be ignored
+        """
+        u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
+        c = Contract.objects.create(user=u, contract_start_date=dt.date(2023,4,1), contract_end_date=dt.date(2023,9,30), hours_per_week=5)
+        c2 = Contract.objects.create(user=u, contract_start_date=dt.date(2022,10,1), contract_end_date=dt.date(2023,3,30), hours_per_week=5)
+        self.assertEqual(get_employment_time(u), (dt.date(2023,4,1), dt.date(2023,9,30)))
