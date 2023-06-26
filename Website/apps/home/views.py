@@ -16,6 +16,15 @@ import holidays as hd
 from typing import Tuple
 
 def get_free_days(from_date: dt.date, to_date: dt.date) -> dict:
+    """A function that returns all free days between two dates. It uses the holidays package to get all holidays in Saxony between the two dates. It returns a dictionary with the date as key and the name of the holiday as value.
+
+    Args:
+        from_date (dt.date): from date
+        to_date (dt.date): to date
+
+    Returns:
+        dict: A dictionary with the date as key and the name of the holiday as value.
+    """
     all_holidays = hd.country_holidays("DE", subdiv = "SN", years = [y for y in range(from_date.year, to_date.year + 1)])
     free_days = {}
     for date, name in sorted(all_holidays.items()):
@@ -25,8 +34,20 @@ def get_free_days(from_date: dt.date, to_date: dt.date) -> dict:
     return free_days
 
 def get_employment_time(user: User) -> Tuple[dt.date, dt.date]:
+    """A function that returns the start and end date of the current employment of a given user. It iterates over all contracts of the user and returns the earliest start date and the latest end date. If the user has no active contract, the start date is the start date of the last contract and the end date is the end date of the last contract.
+
+    Args:
+        user (User): The user for which the employment time should be calculated.
+
+    Returns:
+        Tuple[dt.date, dt.date]: The start and end date of the current employment.
+    """
     start_dates = [contract.contract_start_date for contract in Contract.objects.filter(user=user) if contract.contract_start_date <= dt.date.today() <= contract.contract_end_date]
     end_dates = [contract.contract_end_date for contract in Contract.objects.filter(user=user) if contract.contract_start_date <= dt.date.today() <= contract.contract_end_date]
+    if len(start_dates) == 0 or len(end_dates) == 0:
+        start_date = Contract.objects.filter(user=user).order_by('-contract_end_date').first().contract_start_date
+        end_date = Contract.objects.filter(user=user).order_by('-contract_end_date').first().contract_end_date
+        return start_date, end_date
     
     return min(start_dates), max(end_dates)
             
@@ -55,7 +76,7 @@ def calc_holiday(user: User) -> Tuple[float, float, int, float]:
     Returns:
         Tuple[float, float, float, float]: holiday entitlement, not taken holidays in last semester, taken holidays days, remaining holidays in days
     """
-    contracts = Contract.objects.filter(user=user)
+    contracts = Contract.objects.filter(user=user, contract_start_date__range=get_employment_time(user), contract_end_date__range=get_employment_time(user))
     holiday_entitlement_sum, not_taken_holidays_sum = 0, 0
     for contract in contracts:
         contract_duration = dt.date(contract.contract_end_date.year, contract.contract_end_date.month, contract.contract_end_date.day) - dt.date(contract.contract_start_date.year, contract.contract_start_date.month, contract.contract_start_date.day)
@@ -65,7 +86,7 @@ def calc_holiday(user: User) -> Tuple[float, float, int, float]:
         holiday_entitlement_sum += holiday_entitlement
         not_taken_holidays_sum += not_taken_holidays
     
-    taken_holidays = Holiday.objects.filter(by_id=user)
+    taken_holidays = Holiday.objects.filter(by_id=user, from_date__range=get_employment_time(user), to_date__range=get_employment_time(user))
     taken_holidays_days = sum([business_days(holiday.from_date, holiday.to_date) - len(get_free_days(holiday.from_date, holiday.to_date).keys()) for holiday in taken_holidays])
     remaining_holidays = holiday_entitlement_sum + not_taken_holidays_sum - taken_holidays_days
     
@@ -94,11 +115,11 @@ def calc_working_time(user: User) -> Tuple[float, float, float, float]:
     Returns:
         Tuple[float, float, float, float]: hours to work, worked hours, planned hours, excess hours
     """
-    contracts = Contract.objects.filter(user=user)
+    contracts = Contract.objects.filter(user=user, contract_start_date__range=get_employment_time(user), contract_end_date__range=get_employment_time(user))
     hours_to_work = 0
     for contract in contracts:
         hours_to_work += calc_days_to_work(contract.contract_start_date, contract.contract_end_date) * contract.hours_per_week/5
-        for contract_change in ContractChange.objects.filter(contract_id=contract):
+        for contract_change in ContractChange.objects.filter(contract_id=contract, from_date__range=get_employment_time(user)):
             start_date = contract_change.from_date
             if contract_change.to_date is None:
                 end_date = contract.contract_end_date
@@ -106,11 +127,11 @@ def calc_working_time(user: User) -> Tuple[float, float, float, float]:
                 end_date = contract_change.to_date
             hours_to_work += calc_days_to_work(start_date, end_date) * (contract_change.hours_per_week/5 - contract.hours_per_week/5)
         
-    taken_holidays = Holiday.objects.filter(by_id=user)
+    taken_holidays = Holiday.objects.filter(by_id=user, from_date__range=get_employment_time(user), to_date__range=get_employment_time(user))
     taken_holidays_days = sum([business_days(holiday.from_date, holiday.to_date) - len(get_free_days(holiday.from_date, holiday.to_date).keys()) for holiday in taken_holidays])
     hours_to_work -= taken_holidays_days * contract.hours_per_week/5
     
-    tasks = Task.objects.filter(assigned_to=user)
+    tasks = Task.objects.filter(assigned_to=user, deadline__range=get_employment_time(user))
     worked_hours = sum([task.worked_hours for task in tasks])
     planned_hours = sum([task.total_hours for task in tasks])
     excess_hours = hours_to_work - worked_hours
@@ -154,11 +175,11 @@ def index(request: HttpRequest):
         shks_data = []
         if is_supervisor(logged_user):
             # only get shks of supervisor
-            shks = Contract.objects.filter(supervisor=logged_user)
+            shks = Contract.objects.filter(supervisor=logged_user) # TODO: filter out shks that are not active anymore
         else:
             # get all shks
             # since a shk can have multiple contracts, we only get the first one
-            shks = [Contract.objects.filter(user=user).first() for user in User.objects.filter(groups__name='shk')]
+            shks = [Contract.objects.filter(user=user, contract_start_date__range=get_employment_time(user), contract_end_date__range=get_employment_time(user)).first() for user in User.objects.filter(groups__name='shk')]
         
         for shk in shks:
             hours_to_work, worked_hours, planned_hours, excess_hours = calc_working_time(shk.user)
@@ -175,7 +196,7 @@ def index(request: HttpRequest):
                 'excess_hours': excess_hours,
                 'carry_over_hours_from_last_semester': shk.carry_over_hours_from_last_semester,
             })
-        tasks = Task.objects.filter(assigned_to__in=[shk.user for shk in shks]).order_by('-deadline')[:10]
+        tasks = Task.objects.filter(assigned_to__in=[shk.user for shk in shks]).order_by('-deadline')[:10] # no filtering nessesary since we only get shks that are active
         
         context = {
             'segment': 'index',
@@ -219,7 +240,7 @@ def index(request: HttpRequest):
             'worked_hours_pct': worked_hours_pct, 
             'planned_hours': planned_hours, 
             'planned_hours_pct': planned_hours_pct,
-            'carry_over_hours_from_last_semester': sum([contract.carry_over_hours_from_last_semester for contract in Contract.objects.filter(user=logged_user)]),
+            'carry_over_hours_from_last_semester': sum([contract.carry_over_hours_from_last_semester for contract in Contract.objects.filter(user=logged_user, contract_start_date__range=get_employment_time(logged_user), contract_end_date__range=get_employment_time(logged_user))]),
             'excess_hours': excess_hours,
             'tasks': unfinished_tasks,
             'supervisors': supervisors,
@@ -245,12 +266,12 @@ def tasks(request: HttpRequest):
         t.save()
     
     if is_supervisor(logged_user):
-        shks = Contract.objects.filter(supervisor=logged_user)
-        tasks = Task.objects.filter(assigned_to__in=[shk.user for shk in shks]).order_by('-deadline')
+        shks = Contract.objects.filter(supervisor=logged_user) # TODO: filter out shks that are not active anymore
+        tasks = Task.objects.filter(assigned_to__in=[shk.user for shk in shks]).order_by('-deadline') # no filtering nessesary since we only get shks that are active
     elif is_shkofficer(logged_user):
         tasks = Task.objects.all().order_by('-deadline')
     else:
-        tasks = Task.objects.filter(assigned_to=logged_user).order_by('-deadline')
+        tasks = Task.objects.filter(assigned_to=logged_user, deadline__range=get_employment_time(logged_user)).order_by('-deadline')
     
     context = {
         'segment': 'tasks',
@@ -283,7 +304,7 @@ def holidays(request: HttpRequest):
         shks_data = []
         if is_supervisor(logged_user):
             # only get shks of supervisor
-            shks = Contract.objects.filter(supervisor=logged_user)
+            shks = Contract.objects.filter(supervisor=logged_user) # TODO: filter out shks that are not active anymore
         else:
             # get all shks
             # since a shk can have multiple contracts, we only get the first one
@@ -295,7 +316,7 @@ def holidays(request: HttpRequest):
                 'contract': shk,
                 'remaining_holidays': remaining_holidays,
             })
-        holidays = Holiday.objects.filter(by_id__in=[shk.user for shk in shks]).order_by('-from_date')
+        holidays = Holiday.objects.filter(by_id__in=[shk.user for shk in shks]).order_by('-from_date') # no filtering nessesary since we only get shks that are active
         
         context = {
             'segment': 'holidays',
@@ -319,7 +340,7 @@ def holidays(request: HttpRequest):
                     h.save()
                     
         holiday_entitlement, not_taken_holidays, taken_holidays_days, remaining_holidays = calc_holiday(logged_user)
-        taken_holidays = Holiday.objects.filter(by_id=logged_user)
+        taken_holidays = Holiday.objects.filter(by_id=logged_user, from_date__range=get_employment_time(logged_user), to_date__range=get_employment_time(logged_user)).order_by('-from_date')
         
         context = {
             'segment': 'holidays',
