@@ -44,8 +44,8 @@ class Contract(models.Model):
     contract_start_date = models.DateField(default=None, null=True, blank=True)
     contract_end_date = models.DateField(default=None, null=True, blank=True)
     hours_per_week = models.FloatField(default=0)
-    carry_over_hours_from_last_semester = models.FloatField(default=0)
-    carry_over_holiday_hours_from_last_semester = models.FloatField(default=0)
+    carry_over_hours_from_last_semester = models.FloatField(default=0, help_text='Usually 0, in the contract overview you can let the number be calculated from the last semester.')
+    carry_over_holiday_hours_from_last_semester = models.FloatField(default=0, help_text='Usually 0, in the contract overview you can let the number be calculated from the last semester.')
     supervisor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='supervisor', default=None, null=True, blank=True)
 
     def __str__(self):

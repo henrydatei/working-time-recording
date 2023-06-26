@@ -12,6 +12,8 @@ from django.db.models import F
 import datetime as dt
 import numpy as np
 import holidays as hd
+from freezegun import freeze_time
+from dateutil.rrule import rrule, DAILY
 
 from typing import Tuple
 
@@ -106,6 +108,34 @@ def calc_days_to_work(from_date: dt.date, to_date: dt.date) -> int:
     days_to_work = business_days(from_date, min(dt.date.today(), to_date)) - free_days
     return days_to_work
 
+def working_hours_on_day(user: User, date: dt.date) -> float:
+    """Return the number of hours a user has to work on a given day
+
+    Args:
+        user (User): The user for which the working hours should be calculated.
+        date (dt.date): The date for which the working hours should be calculated.
+
+    Returns:
+        float: The amount of hours to work on the given day.
+    """
+    free_days = get_free_days(date, date)
+    
+    # check if date is a free day
+    if date in free_days.keys() or date.weekday() >= 5:
+        return 0.0
+    
+    # find all contracts that are active on the given date
+    hours_on_day = 0.0
+    contracts = Contract.objects.filter(user=user, contract_start_date__lte=date, contract_end_date__gte=date)
+    for contract in contracts:
+        hours_on_day += contract.hours_per_week/5
+        # find all contract changes that are active on the given date
+        contract_changes = ContractChange.objects.filter(contract_id=contract, from_date__lte=date, to_date__gte=date)
+        for contract_change in contract_changes:
+            hours_on_day += contract_change.hours_per_week/5 - contract.hours_per_week/5
+            
+    return hours_on_day    
+
 def calc_working_time(user: User) -> Tuple[float, float, float, float]:
     """This function calculates the hours to work, the worked hours, the planned hours and the excess hours for a given user. It uses the contract start date and the contract end date. If the contract end date is in the future, the current date is used instead. We do this for all contracts of the user and sum up the hours.
 
@@ -128,8 +158,9 @@ def calc_working_time(user: User) -> Tuple[float, float, float, float]:
             hours_to_work += calc_days_to_work(start_date, end_date) * (contract_change.hours_per_week/5 - contract.hours_per_week/5)
         
     taken_holidays = Holiday.objects.filter(by_id=user, from_date__range=get_employment_time(user), to_date__range=get_employment_time(user))
-    taken_holidays_days = sum([business_days(holiday.from_date, holiday.to_date) - len(get_free_days(holiday.from_date, holiday.to_date).keys()) for holiday in taken_holidays])
-    hours_to_work -= taken_holidays_days * contract.hours_per_week/5
+    for holiday in taken_holidays:
+        for day in rrule(DAILY, dtstart=holiday.from_date, until=holiday.to_date):
+            hours_to_work -= working_hours_on_day(user, day.date())
     
     tasks = Task.objects.filter(assigned_to=user, deadline__range=get_employment_time(user))
     worked_hours = sum([task.worked_hours for task in tasks])
@@ -137,6 +168,34 @@ def calc_working_time(user: User) -> Tuple[float, float, float, float]:
     excess_hours = hours_to_work - worked_hours
     
     return hours_to_work, worked_hours, planned_hours, excess_hours
+
+def do_carryover(user: User) -> Tuple[float, float]:
+    """Calculates carryover from last contract. This carryover will then be added to the carryover of the longest contract that is currently active.
+
+    Args:
+        user (User): The user for which the carryover should be calculated.
+
+    Returns:
+        Tuple[float, float]: carryover hours, carryover holiday hours
+    """
+    last_contracts_end_date = Contract.objects.filter(user=user, contract_end_date__lt=dt.date.today()).order_by('-contract_end_date').first().contract_end_date
+    last_contracts = Contract.objects.filter(user=user, contract_end_date=last_contracts_end_date) # only nesseary because user can have multiple contracts ending at the same time
+    with freeze_time(last_contracts_end_date): # want to use my functions but they only work during a contract
+        hours_to_work, worked_hours, planned_hours, excess_hours = calc_working_time(user)
+        holiday_entitlement_sum, not_taken_holidays_sum, taken_holidays_days, remaining_holidays = calc_holiday(user) # in days
+        employment_start, employment_end = get_employment_time(user)
+        average_hours_per_day = np.mean([working_hours_on_day(user, day.date()) for day in rrule(DAILY, dtstart=employment_start, until=employment_end)])
+    
+    carryover_hours = sum([contract.carry_over_hours_from_last_semester for contract in last_contracts]) + excess_hours
+    carryover_holiday_hours = sum([contract.carry_over_holiday_hours_from_last_semester for contract in last_contracts]) + (holiday_entitlement_sum - taken_holidays_days) * average_hours_per_day
+        
+    # add carryover to carryover of longest contract
+    longest_contract = Contract.objects.filter(user=user, contract_start_date__lte=dt.date.today(), contract_end_date__gte=dt.date.today()).extra(select={'duration': 'contract_end_date - contract_start_date'}).order_by('-duration').first()
+    longest_contract.carry_over_hours_from_last_semester += carryover_hours
+    longest_contract.carry_over_holiday_hours_from_last_semester += carryover_holiday_hours
+    longest_contract.save()
+        
+    return carryover_hours, carryover_holiday_hours
 
 def is_supervisor(user: User) -> bool:
     """This function checks if a given user is a supervisor.

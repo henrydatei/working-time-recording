@@ -5,7 +5,7 @@ from freezegun import freeze_time
 
 from .models import Holiday, Contract, Task, ContractChange
 from django.contrib.auth.models import User
-from .views import calc_holiday, calc_days_to_work, calc_working_time, get_free_days, business_days, get_employment_time
+from .views import calc_holiday, calc_days_to_work, calc_working_time, get_free_days, business_days, get_employment_time, do_carryover, working_hours_on_day
 
 # Create your tests here.
 
@@ -245,3 +245,141 @@ class FunctionsTests(TestCase):
         c = Contract.objects.create(user=u, contract_start_date=dt.date(2023,4,1), contract_end_date=dt.date(2023,9,30), hours_per_week=5)
         c2 = Contract.objects.create(user=u, contract_start_date=dt.date(2022,10,1), contract_end_date=dt.date(2023,3,30), hours_per_week=5)
         self.assertEqual(get_employment_time(u), (dt.date(2023,4,1), dt.date(2023,9,30)))
+        
+    @freeze_time("2023-10-01")    
+    def test_employment_time_after_semester(self):
+        """User has finished contract, semester is over, employment time is last semester
+        """
+        u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
+        c = Contract.objects.create(user=u, contract_start_date=dt.date(2023,4,1), contract_end_date=dt.date(2023,9,30), hours_per_week=5)
+        self.assertEqual(get_employment_time(u), (dt.date(2023,4,1), dt.date(2023,9,30)))
+        
+    @freeze_time("2023-06-30")    
+    def test_working_time_task_done_in_last_contract(self):
+        """User had contract last week, did a task there, but it is not relevant for this week's contract
+        """
+        u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
+        c1 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,19), contract_end_date=dt.date(2023,6,23), hours_per_week=5)
+        c2 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,26), contract_end_date=dt.date(2023,6,30), hours_per_week=5)
+        t = Task.objects.create(assigned_to=u, assigner=u, task_text='Test task', total_hours=2, worked_hours=2, deadline=dt.date(2023,6,23)) # should be ignored
+        self.assertEqual(calc_working_time(u), (5.0, 0, 0, 5.0))
+        
+    @freeze_time("2023-06-26")
+    def test_do_carryover_simple(self):
+        """User had contract last week, did a task there and got a contract for this week, so the 3 hours from last week should be carried over to this week
+        """
+        u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
+        c1 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,19), contract_end_date=dt.date(2023,6,23), hours_per_week=5)
+        t = Task.objects.create(assigned_to=u, assigner=u, task_text='Test task', total_hours=2, worked_hours=2, deadline=dt.date(2023,6,23))
+        c2 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,26), contract_end_date=dt.date(2023,6,30), hours_per_week=10)
+        self.assertEqual(do_carryover(u), (3.0, 0.0))
+        
+    @freeze_time("2023-06-27")
+    def test_do_carryover_multiple_last_contracts(self):
+        """User had contracts for last weeks, did a task there and got a contract for this week, so the 3 hours from last week should be carried over to this week
+        """
+        u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
+        c1 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,5), contract_end_date=dt.date(2023,6,11), hours_per_week=5)
+        t1 = Task.objects.create(assigned_to=u, assigner=u, task_text='Test task', total_hours=2, worked_hours=2, deadline=dt.date(2023,6,11))
+        c2 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,12), contract_end_date=dt.date(2023,6,18), hours_per_week=5, carry_over_hours_from_last_semester=3)
+        t2 = Task.objects.create(assigned_to=u, assigner=u, task_text='Test task', total_hours=2, worked_hours=2, deadline=dt.date(2023,6,18))
+        c3 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,19), contract_end_date=dt.date(2023,6,25), hours_per_week=5, carry_over_hours_from_last_semester=6)
+        t3 = Task.objects.create(assigned_to=u, assigner=u, task_text='Test task', total_hours=2, worked_hours=2, deadline=dt.date(2023,6,25))
+        c4 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,26), contract_end_date=dt.date(2023,7,2), hours_per_week=5)
+        self.assertEqual(do_carryover(u), (9.0, 0.0))
+        
+    @freeze_time("2023-06-26")
+    def test_do_carryover_multiple_last_contracts(self):
+        """User had 2 contracts last week, did a task there and got a contract for this week, so the 8 hours from last week should be carried over to this week
+        """
+        u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
+        c10 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,19), contract_end_date=dt.date(2023,6,23), hours_per_week=5)
+        c11 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,19), contract_end_date=dt.date(2023,6,23), hours_per_week=5)
+        t = Task.objects.create(assigned_to=u, assigner=u, task_text='Test task', total_hours=2, worked_hours=2, deadline=dt.date(2023,6,23))
+        c2 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,26), contract_end_date=dt.date(2023,6,30), hours_per_week=10)
+        self.assertEqual(do_carryover(u), (8.0, 0.0))
+        
+    @freeze_time("2023-06-26")
+    def test_do_carryover_multiple_last_contracts_previous_carryover(self):
+        """User had 2 contracts last week, did a task there and got a contract for this week, so the 11 hours from last week should be carried over to this week
+        """
+        u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
+        c10 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,19), contract_end_date=dt.date(2023,6,23), hours_per_week=5, carry_over_hours_from_last_semester=1)
+        c11 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,19), contract_end_date=dt.date(2023,6,23), hours_per_week=5, carry_over_hours_from_last_semester=2)
+        t = Task.objects.create(assigned_to=u, assigner=u, task_text='Test task', total_hours=2, worked_hours=2, deadline=dt.date(2023,6,23))
+        c2 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,26), contract_end_date=dt.date(2023,6,30), hours_per_week=10)
+        self.assertEqual(do_carryover(u), (11.0, 0.0))
+        
+    @freeze_time("2023-06-26")
+    def test_do_carryover_multiple_last_contracts_previous_carryover_holidays(self):
+        """User had 2 contracts last week, did a task there and got a contract for this week, so the 11 hours from last week should be carried over to this week. Additionally holiday carryovers (no holiday entitlement for so short contracts)
+        """
+        u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
+        c10 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,19), contract_end_date=dt.date(2023,6,23), hours_per_week=5, carry_over_hours_from_last_semester=1, carry_over_holiday_hours_from_last_semester=4)
+        c11 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,19), contract_end_date=dt.date(2023,6,23), hours_per_week=5, carry_over_hours_from_last_semester=2, carry_over_holiday_hours_from_last_semester=5)
+        t = Task.objects.create(assigned_to=u, assigner=u, task_text='Test task', total_hours=2, worked_hours=2, deadline=dt.date(2023,6,23))
+        c2 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,26), contract_end_date=dt.date(2023,6,30), hours_per_week=10)
+        self.assertEqual(do_carryover(u), (11.0, 9.0))
+        
+    @freeze_time("2023-06-26")
+    def test_do_carryover_multiple_last_contracts_previous_carryover_holidays_taken_holidays(self):
+        """User had 2 contracts last week, did a task there and got a contract for this week, so the 10 (11 - 2 holiday) hours from last week should be carried over to this week. Additionally holiday carryovers (no holiday entitlement for so short contracts) but holidays taken
+        """
+        u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
+        c10 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,19), contract_end_date=dt.date(2023,6,23), hours_per_week=5, carry_over_hours_from_last_semester=1, carry_over_holiday_hours_from_last_semester=4)
+        c11 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,19), contract_end_date=dt.date(2023,6,23), hours_per_week=5, carry_over_hours_from_last_semester=2, carry_over_holiday_hours_from_last_semester=5)
+        t = Task.objects.create(assigned_to=u, assigner=u, task_text='Test task', total_hours=2, worked_hours=2, deadline=dt.date(2023,6,23))
+        h = Holiday.objects.create(from_date='2023-06-20', to_date='2023-06-20', by_id=u)
+        c2 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,26), contract_end_date=dt.date(2023,6,30), hours_per_week=10)
+        self.assertEqual(do_carryover(u), (9.0, 7.0))
+        
+    def test_working_hours_day_simple(self):
+        """User has contract with 10 hours per week, so 2 hours per day
+        """
+        u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
+        c = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,26), contract_end_date=dt.date(2023,6,30), hours_per_week=10)
+        self.assertEqual(working_hours_on_day(u, dt.date(2023,6,26)), 2.0)
+        
+    def test_working_hours_day_two_contracts(self):
+        """User has 2 contracts with 10 hours per week, so 4 hours per day
+        """
+        u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
+        c1 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,26), contract_end_date=dt.date(2023,6,30), hours_per_week=10)
+        c2 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,26), contract_end_date=dt.date(2023,6,30), hours_per_week=10)
+        self.assertEqual(working_hours_on_day(u, dt.date(2023,6,26)), 4.0)
+        
+    def test_working_hours_day_two_contracts_contract_change(self):
+        """User has 2 contracts with 10 hours per week + one contract change, so 6 hours per day
+        """
+        u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
+        c1 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,26), contract_end_date=dt.date(2023,6,30), hours_per_week=10)
+        c2 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,6,26), contract_end_date=dt.date(2023,6,30), hours_per_week=10)
+        cc = ContractChange.objects.create(contract_id=c2, from_date=dt.date(2023,6,26), to_date=dt.date(2023,6,26), hours_per_week=20)
+        self.assertEqual(working_hours_on_day(u, dt.date(2023,6,26)), 6.0)
+        
+    def test_working_hours_day_free_day(self):
+        """User has 2 contracts with 10 hours per week + one contract change, so 6 hours per day but we check on 1st May (free day), so 0 hours per day
+        """
+        u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
+        c1 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,5,1), contract_end_date=dt.date(2023,5,7), hours_per_week=10)
+        c2 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,5,1), contract_end_date=dt.date(2023,5,7), hours_per_week=10)
+        cc = ContractChange.objects.create(contract_id=c2, from_date=dt.date(2023,5,1), to_date=dt.date(2023,5,1), hours_per_week=20)
+        self.assertEqual(working_hours_on_day(u, dt.date(2023,5,1)), 0.0)
+        
+    def test_working_hours_day_weekend(self):
+        """User has 2 contracts with 10 hours per week + one contract change, so 6 hours per day but we check on weekend, so 0 hours per day
+        """
+        u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
+        c1 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,5,1), contract_end_date=dt.date(2023,5,7), hours_per_week=10)
+        c2 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,5,1), contract_end_date=dt.date(2023,5,7), hours_per_week=10)
+        cc = ContractChange.objects.create(contract_id=c2, from_date=dt.date(2023,5,1), to_date=dt.date(2023,5,1), hours_per_week=20)
+        self.assertEqual(working_hours_on_day(u, dt.date(2023,5,7)), 0.0)
+        
+    def test_working_hours_day_contract_over(self):
+        """User had contracts before but these are inactive. Active is just one 10-hour-contract, so 2 hours per day
+        """
+        u = User.objects.create_user(username='testuser', password='12345', email='test@example.com')
+        c1 = Contract.objects.create(user=u, contract_start_date=dt.date(2023,5,1), contract_end_date=dt.date(2023,5,7), hours_per_week=10)
+        c2 = Contract.objects.create(user=u, contract_start_date=dt.date(2022,6,26), contract_end_date=dt.date(2022,6,30), hours_per_week=10)
+        cc = ContractChange.objects.create(contract_id=c2, from_date=dt.date(2022,6,26), to_date=dt.date(2022,6,26), hours_per_week=20)
+        self.assertEqual(working_hours_on_day(u, dt.date(2023,5,2)), 2.0)
