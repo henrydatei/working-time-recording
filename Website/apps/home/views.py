@@ -169,14 +169,16 @@ def calc_working_time(user: User) -> Tuple[float, float, float, float]:
     
     return hours_to_work, worked_hours, planned_hours, excess_hours
 
-def do_carryover(user: User) -> Tuple[float, float]:
-    """Calculates carryover from last contract. This carryover will then be added to the carryover of the longest contract that is currently active.
+def do_carryover(user: User, only_calculate: bool = False) -> Tuple[float, float] | Tuple[float, float, Contract, float, float]:
+    """Calculates carryover from last contract. This carryover will then be set to the carryover of the longest contract that is currently active if it has a carryover of 0. This prevents that the carryover is calculated multiple times.
 
     Args:
         user (User): The user for which the carryover should be calculated.
+        only_calculate (bool): If True, the carryover will not be set to the longest contract.
 
     Returns:
-        Tuple[float, float]: carryover hours, carryover holiday hours
+        Tuple[float, float]: carryover hours, carryover holiday hours (if only_calculate is False)
+        Tuple[float, float, Contract, float, float]: carryover hours, carryover holiday hours, new contract, last semester carryover hours sum, last semester carryover holiday sum (if only_calculate is True)
     """
     last_contracts_end_date = Contract.objects.filter(user=user, contract_end_date__lt=dt.date.today()).order_by('-contract_end_date').first().contract_end_date
     last_contracts = Contract.objects.filter(user=user, contract_end_date=last_contracts_end_date) # only nesseary because user can have multiple contracts ending at the same time
@@ -186,16 +188,24 @@ def do_carryover(user: User) -> Tuple[float, float]:
         employment_start, employment_end = get_employment_time(user)
         average_hours_per_day = np.mean([working_hours_on_day(user, day.date()) for day in rrule(DAILY, dtstart=employment_start, until=employment_end)])
     
-    carryover_hours = sum([contract.carry_over_hours_from_last_semester for contract in last_contracts]) + excess_hours
-    carryover_holiday_hours = sum([contract.carry_over_holiday_hours_from_last_semester for contract in last_contracts]) + (holiday_entitlement_sum - taken_holidays_days) * average_hours_per_day
+    last_semester_carry_over_hours = sum([contract.carry_over_hours_from_last_semester for contract in last_contracts])
+    last_semester_carry_over_holiday_hours = sum([contract.carry_over_holiday_hours_from_last_semester for contract in last_contracts])
+    carryover_hours = last_semester_carry_over_hours + excess_hours
+    carryover_holiday_hours = last_semester_carry_over_holiday_hours + (holiday_entitlement_sum - taken_holidays_days) * average_hours_per_day
         
-    # add carryover to carryover of longest contract
+    # set carryover to carryover of longest contract
     longest_contract = Contract.objects.filter(user=user, contract_start_date__lte=dt.date.today(), contract_end_date__gte=dt.date.today()).extra(select={'duration': 'contract_end_date - contract_start_date'}).order_by('-duration').first()
-    longest_contract.carry_over_hours_from_last_semester += carryover_hours
-    longest_contract.carry_over_holiday_hours_from_last_semester += carryover_holiday_hours
-    longest_contract.save()
-        
-    return carryover_hours, carryover_holiday_hours
+    if only_calculate:
+        return carryover_hours, carryover_holiday_hours, longest_contract, last_semester_carry_over_hours, last_semester_carry_over_holiday_hours
+    else:
+        if longest_contract.carry_over_hours_from_last_semester == 0 and longest_contract.carry_over_holiday_hours_from_last_semester == 0:
+            longest_contract.carry_over_hours_from_last_semester = carryover_hours
+            longest_contract.carry_over_holiday_hours_from_last_semester = carryover_holiday_hours
+            longest_contract.save()
+                
+            return carryover_hours, carryover_holiday_hours
+        else:
+            return 0,0
 
 def is_supervisor(user: User) -> bool:
     """This function checks if a given user is a supervisor.
@@ -441,6 +451,38 @@ def contracts(request: HttpRequest):
         shk.contracts = Contract.objects.filter(user=shk)
         for contract in shk.contracts:
             contract.contract_changes = ContractChange.objects.filter(contract_id=contract)
+        
+        # carryover?
+        carryover_possible = True
+        old_problems = []
+        new_problems = []
+        if not Contract.objects.filter(user=shk, contract_end_date__lt=dt.date.today()).exists(): 
+            old_problems.append("No contract ended yet.")
+            carryover_possible = False
+        if not Contract.objects.filter(user=shk, contract_start_date__lte=dt.date.today(), contract_end_date__gte=dt.date.today()).exists():
+            new_problems.append("No new contract started yet.")
+            carryover_possible = False
+        elif Contract.objects.filter(user=shk, contract_start_date__lte=dt.date.today(), contract_end_date__gte=dt.date.today()).extra(select={'duration': 'contract_end_date - contract_start_date'}).order_by('-duration').first().carry_over_hours_from_last_semester != 0:
+            new_problems.append("New contract has already carryover for working time.")
+            carryover_possible = False
+        elif Contract.objects.filter(user=shk, contract_start_date__lte=dt.date.today(), contract_end_date__gte=dt.date.today()).extra(select={'duration': 'contract_end_date - contract_start_date'}).order_by('-duration').first().carry_over_holiday_hours_from_last_semester != 0:
+            new_problems.append("New contract has already carryover for holiday.")
+            carryover_possible = False
+            
+        shk.carryover_possible = carryover_possible
+        shk.old_problems = old_problems
+        shk.new_problems = new_problems
+        
+        if carryover_possible:
+            carryover_hours, carryover_holiday_hours, new_contract, last_semester_carry_over_hours, last_semester_carry_over_holiday_hours = do_carryover(shk, only_calculate=True)
+            shk.old_carryover_work = last_semester_carry_over_hours
+            shk.old_carryover_holiday = last_semester_carry_over_holiday_hours
+            shk.present_carryover_work = carryover_hours - last_semester_carry_over_hours
+            shk.present_carryover_holiday = carryover_holiday_hours - last_semester_carry_over_holiday_hours
+            shk.new_carryover_work = new_contract.carry_over_hours_from_last_semester
+            shk.new_carryover_holiday = new_contract.carry_over_holiday_hours_from_last_semester
+            shk.new_total_carryover_work = carryover_hours
+            shk.new_total_carryover_holiday = carryover_holiday_hours
     
     context = {
         'segment': 'contracts',
@@ -449,6 +491,12 @@ def contracts(request: HttpRequest):
     
     html_template = loader.get_template('home/contracts.html')
     return HttpResponse(html_template.render(context, request))
+
+@login_required(login_url="/login/")
+def doCarryover(request: HttpRequest, user_id: int):
+    do_carryover(User.objects.get(id=user_id))
+    
+    return HttpResponseRedirect(reverse('contracts'))
 
 @login_required(login_url="/login/")
 def pages(request: HttpRequest):

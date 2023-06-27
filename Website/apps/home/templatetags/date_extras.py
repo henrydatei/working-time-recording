@@ -1,5 +1,4 @@
 from django import template
-from numpy import busday_count
 
 from ..views import get_free_days, business_days
 

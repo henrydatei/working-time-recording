@@ -16,6 +16,8 @@ urlpatterns = [
     
     # AllContracts page
     path('contracts/', views.contracts, name='contracts'),
+    # Do carryover
+    path('doCarryover/<int:user_id>', views.doCarryover, name='doCarryover'),
 
     # Matches any html file
     re_path(r'^.*\.*', views.pages, name='pages'),
