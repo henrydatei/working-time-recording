@@ -340,7 +340,7 @@ def tasks(request: HttpRequest):
     elif is_shkofficer(logged_user):
         tasks = Task.objects.all().order_by('-deadline')
     else:
-        tasks = Task.objects.filter(assigned_to=logged_user, deadline__range=get_employment_time(logged_user)).order_by('-deadline')
+        tasks = Task.objects.filter(assigned_to=logged_user).order_by('-deadline')
     
     context = {
         'segment': 'tasks',
