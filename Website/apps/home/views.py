@@ -335,8 +335,8 @@ def tasks(request: HttpRequest):
         t.save()
     
     if is_supervisor(logged_user):
-        shks = Contract.objects.filter(supervisor=logged_user) # TODO: filter out shks that are not active anymore
-        tasks = Task.objects.filter(assigned_to__in=[shk.user for shk in shks]).order_by('-deadline') # no filtering nessesary since we only get shks that are active
+        shks = Contract.objects.filter(supervisor=logged_user)
+        tasks = Task.objects.filter(assigned_to__in=[shk.user for shk in shks]).order_by('-deadline')
     elif is_shkofficer(logged_user):
         tasks = Task.objects.all().order_by('-deadline')
     else:
