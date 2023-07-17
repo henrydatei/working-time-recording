@@ -283,13 +283,14 @@ def index(request: HttpRequest):
         # process form
         if request.method == 'POST':
             if request.POST["formType"] == "newTask":
-                t = Task(assigned_to = logged_user, assigner = User.objects.get(id=request.POST["taskGivenBy"]), task_text = request.POST["TaskDescription"], total_hours = request.POST["plannedHours"], worked_hours = request.POST["workedHours"], deadline = request.POST["deadline"])
+                t = Task(assigned_to = logged_user, assigner = User.objects.get(id=request.POST["taskGivenBy"]), task_text = request.POST["TaskDescription"], total_hours = float(request.POST["plannedHours"]), worked_hours = float(request.POST["workedHours"]), deadline = request.POST["deadline"])
                 if t.worked_hours <= t.total_hours:
                     t.save()
             elif request.POST["formType"] == "updateTask":
                 t = Task.objects.get(id=request.POST["taskId"])
-                t.worked_hours = request.POST["actualHours"]
-                t.total_hours = request.POST["plannedHours"]
+                t.worked_hours = float(request.POST["actualHours"])
+                t.total_hours = float(request.POST["plannedHours"])
+                print(t.worked_hours, t.total_hours)
                 if t.worked_hours <= t.total_hours:
                     t.save()
         
@@ -328,8 +329,8 @@ def tasks(request: HttpRequest):
     if request.method == 'POST':
         t = Task.objects.get(id=request.POST["taskId"])
         t.task_text = request.POST["taskDescription"]
-        t.total_hours = request.POST["plannedHours"]
-        t.worked_hours = request.POST["workedHours"]
+        t.total_hours = float(request.POST["plannedHours"])
+        t.worked_hours = float(request.POST["workedHours"])
         t.deadline = request.POST["deadline"]
         t.assigner = User.objects.get(id=request.POST["taskGivenBy"])
         t.save()

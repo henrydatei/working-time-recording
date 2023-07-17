@@ -1,4 +1,5 @@
 {% extends "layouts/base.html" %}
+{% load group_extras %}
 
 {% block title %} Tasks {% endblock %} 
 
@@ -36,10 +37,10 @@
                                                             <th>Planned Hours</th>
                                                             <th>Dealine</th>
                                                             <th>Assigned By</th>
-                                                            {% if user.contract.supervisor %}
-                                                            <th></th>
+                                                            {% if request.user|has_group:"shk" %}
+                                                                <th></th>
                                                             {% else %}
-                                                            <th>Assigned To</th>
+                                                                <th>Assigned To</th>
                                                             {% endif %}
                                                         </tr>
                                                     </thead>
@@ -51,12 +52,12 @@
                                                                 <td>{{ task.total_hours }}</td>
                                                                 <td>{{ task.deadline }}</td>
                                                                 <td>{{ task.assigner.first_name }} {{ task.assigner.last_name }}</td>
-                                                                {% if user.contract.supervisor %}
-                                                                <td>
-                                                                    <a href="/editTask/{{ task.id }}" class="label theme-bg text-white f-12">Edit</a>
-                                                                </td>
+                                                                {% if request.user|has_group:"shk" %}
+                                                                    <td>
+                                                                        <a href="/editTask/{{ task.id }}" class="label theme-bg text-white f-12">Edit</a>
+                                                                    </td>
                                                                 {% else %}
-                                                                <td>{{ task.assigned_to.first_name }} {{ task.assigned_to.last_name }}</td>
+                                                                    <td>{{ task.assigned_to.first_name }} {{ task.assigned_to.last_name }}</td>
                                                                 {% endif %}
                                                             </tr>
                                                         {% endfor %}
