@@ -24,7 +24,7 @@
                                 <div class="col-md-6 col-xl-4">
                                     <div class="card daily-sales">
                                         <div class="card-block">
-                                            <h6 class="mb-4">Actual/Target (only this semester)</h6>
+                                            <h6 class="mb-4">Actual/Target (to this day)</h6>
                                             <div class="row d-flex align-items-center">
                                                 <div class="col-9">
                                                     <h3 class="f-w-300 d-flex align-items-center m-b-0">{{ worked_hours|floatformat }} of {{ hours_to_work|floatformat }} hours</h3>
@@ -47,7 +47,7 @@
                                 <div class="col-md-6 col-xl-4">
                                     <div class="card Monthly-sales">
                                         <div class="card-block">
-                                            <h6 class="mb-4">Planned/Target (only this semester)</h6>
+                                            <h6 class="mb-4">Planned/Target (to this day)</h6>
                                             <div class="row d-flex align-items-center">
                                                 <div class="col-9">
                                                     <h3 class="f-w-300 d-flex align-items-center  m-b-0">{{ planned_hours|floatformat }} of {{ hours_to_work|floatformat }} hours</h3>
@@ -83,7 +83,7 @@
                                 <div class="col-xl-8 col-md-6">
                                     <div class="card Recent-Users">
                                         <div class="card-header">
-                                            <h5>Not Finished Tasks</h5>
+                                            <h5>Not Finished Tasks (worked hours &lt; planned hours)</h5>
                                         </div>
                                         <div class="card-block px-0 py-3">
                                             <div class="table-responsive">

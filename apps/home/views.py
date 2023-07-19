@@ -284,15 +284,12 @@ def index(request: HttpRequest):
         if request.method == 'POST':
             if request.POST["formType"] == "newTask":
                 t = Task(assigned_to = logged_user, assigner = User.objects.get(id=request.POST["taskGivenBy"]), task_text = request.POST["TaskDescription"], total_hours = float(request.POST["plannedHours"]), worked_hours = float(request.POST["workedHours"]), deadline = request.POST["deadline"])
-                if t.worked_hours <= t.total_hours:
-                    t.save()
+                t.save()
             elif request.POST["formType"] == "updateTask":
                 t = Task.objects.get(id=request.POST["taskId"])
                 t.worked_hours = float(request.POST["actualHours"])
                 t.total_hours = float(request.POST["plannedHours"])
-                print(t.worked_hours, t.total_hours)
-                if t.worked_hours <= t.total_hours:
-                    t.save()
+                t.save()
         
         # working time
         hours_to_work, worked_hours, planned_hours, excess_hours = calc_working_time(logged_user)
