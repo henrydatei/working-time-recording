@@ -15,6 +15,8 @@ class Task(models.Model):
     total_hours = models.FloatField()
     worked_hours = models.FloatField()
     deadline = models.DateField()
+    added = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.task_text
@@ -29,6 +31,8 @@ class Holiday(models.Model):
     from_date = models.DateField()
     to_date = models.DateField()
     by_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    added = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return str(self.from_date) + " - " + str(self.to_date)
@@ -47,6 +51,8 @@ class Contract(models.Model):
     carry_over_hours_from_last_semester = models.FloatField(default=0, help_text='Usually 0, in the contract overview you can let the number be calculated from the last semester. Only change if you know what you are doing.')
     carry_over_holiday_hours_from_last_semester = models.FloatField(default=0, help_text='Usually 0, in the contract overview you can let the number be calculated from the last semester. Only change if you know what you are doing.')
     supervisor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='supervisor', default=None, null=True, blank=True)
+    added = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.user.username + '\'s contract for ' + str(self.hours_per_week) + ' hours per week'
@@ -62,6 +68,8 @@ class ContractChange(models.Model):
     from_date = models.DateField()
     to_date = models.DateField(default=None, null=True, blank=True, help_text='Leave blank if you don\'t know when the contract change ends. Calculation will assume in this case that the contract change is till the end of the contract. If you add a second contract change, the end date of the first contract change will be set to the day before the start date of the second contract change.')
     hours_per_week = models.FloatField(default=0)
+    added = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return 'Change ' + str(self.contract_id) + ' from ' + str(self.from_date) + ' to ' + str(self.to_date) + ' for ' + str(self.hours_per_week) + ' hours per week'
