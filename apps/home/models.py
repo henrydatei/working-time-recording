@@ -35,7 +35,7 @@ class Holiday(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return str(self.from_date) + " - " + str(self.to_date)
+        return 'Holiday from ' + str(self.from_date) + " - " + str(self.to_date) + ' by ' + self.by_id.username
 
     class Meta:
         verbose_name = 'Holiday'
@@ -55,7 +55,7 @@ class Contract(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.user.username + '\'s contract for ' + str(self.hours_per_week) + ' hours per week'
+        return self.user.username + '\'s contract for ' + str(self.hours_per_week) + ' hours per week from ' + str(self.contract_start_date) + ' - ' + str(self.contract_end_date)
 
     class Meta:
         verbose_name = 'Contract'
@@ -72,7 +72,7 @@ class ContractChange(models.Model):
     updated = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return 'Change ' + str(self.contract_id) + ' from ' + str(self.from_date) + ' to ' + str(self.to_date) + ' for ' + str(self.hours_per_week) + ' hours per week'
+        return 'Change Contract of ' + str(self.contract_id.user.username) + ' from ' + str(self.from_date) + ' to ' + str(self.to_date) + ' for ' + str(self.hours_per_week) + ' hours per week'
 
     class Meta:
         verbose_name = 'Contract Change'
