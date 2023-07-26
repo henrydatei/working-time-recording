@@ -17,7 +17,7 @@ import holidays as hd
 from freezegun import freeze_time
 from dateutil.rrule import rrule, DAILY
 
-from typing import Tuple
+from typing import Tuple, Union
 
 def get_free_days(from_date: dt.date, to_date: dt.date) -> dict:
     """A function that returns all free days between two dates. It uses the holidays package to get all holidays in Saxony between the two dates. It returns a dictionary with the date as key and the name of the holiday as value.
@@ -171,7 +171,7 @@ def calc_working_time(user: User) -> Tuple[float, float, float, float]:
     
     return hours_to_work, worked_hours, planned_hours, excess_hours
 
-def do_carryover(user: User, only_calculate: bool = False) -> Tuple[float, float] | Tuple[float, float, Contract, float, float]:
+def do_carryover(user: User, only_calculate: bool = False) -> Union[Tuple[float, float], Tuple[float, float, Contract, float, float]]:
     """Calculates carryover from last contract. This carryover will then be set to the carryover of the longest contract that is currently active if it has a carryover of 0. This prevents that the carryover is calculated multiple times.
 
     Args:
