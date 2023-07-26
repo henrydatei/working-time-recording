@@ -1,4 +1,4 @@
-# belegarbeit
+# Working Time Recording for student assistants
 Belegarbeit an der TU-Dresden am Lehrstuhl für Lehrstuhl für Wirtschaftsinformatik, insb. Intelligente Systeme und Dienste
 
 Code for a working time recording system for student assistants as a Django web application.
