@@ -1,9 +1,11 @@
 from django import template
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
 from django.http import HttpResponse, HttpResponseRedirect, HttpRequest
 from django.template import loader
 from django.urls import reverse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 
 from .models import Task, Holiday, Contract, ContractChange
 from django.contrib.auth.models import User
@@ -495,6 +497,24 @@ def doCarryover(request: HttpRequest, user_id: int):
     do_carryover(User.objects.get(id=user_id))
     
     return HttpResponseRedirect(reverse('contracts'))
+
+@login_required(login_url="/login/")
+def changePassword(request: HttpRequest):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        for field in form.fields:
+            form.fields[field].widget.attrs['class'] = 'form-control'
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Important!
+            return HttpResponseRedirect(reverse('home'))
+        else:
+            print(request)
+    else:
+        form = PasswordChangeForm(request.user)
+        for field in form.fields:
+            form.fields[field].widget.attrs['class'] = 'form-control'
+    return render(request, 'home/changePassword.html', {'form': form})
 
 @login_required(login_url="/login/")
 def pages(request: HttpRequest):

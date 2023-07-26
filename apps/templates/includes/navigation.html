@@ -37,9 +37,9 @@
                         </div>
                         <ul class="pro-body">
                             {% comment %} <li><a href="/profile.html" class="dropdown-item"><i class="feather icon-settings"></i>
-                                Settings</a></li>
-                            <li><a href="/profile.html" class="dropdown-item"><i class="feather icon-user"></i>
-                                Profile</a></li> {% endcomment %}
+                                Settings</a></li> {% endcomment %}
+                            <li><a href="{% url 'changePassword' %}" class="dropdown-item"><i class="feather icon-user"></i>
+                                Change Password</a></li>
                             <li><a href="{% url 'logout' %}" class="dropdown-item">
                                 <i class="feather icon-lock"></i> Logout</a>
                             </li>

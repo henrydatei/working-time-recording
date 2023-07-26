@@ -18,6 +18,9 @@ urlpatterns = [
     path('contracts/', views.contracts, name='contracts'),
     # Do carryover
     path('doCarryover/<int:user_id>', views.doCarryover, name='doCarryover'),
+    
+    # Change password page
+    path('changePassword/', views.changePassword, name='changePassword'),
 
     # Matches any html file
     re_path(r'^.*\.*', views.pages, name='pages'),
