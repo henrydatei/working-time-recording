@@ -60,7 +60,7 @@ File: style.css
 body {
   font-family: "Open Sans", sans-serif;
   font-size: 14px;
-  color: #888;
+  color: #595959;
   font-weight: 400;
   background: #f4f7fa;
   position: relative;
@@ -2081,7 +2081,7 @@ p.text-muted {
   height: 100vh;
   top: 0;
   background: #3f4d67;
-  color: #a9b7d0;
+  color: #E3EBF2;
 }
 .pcoded-navbar ul {
   padding-left: 0;
@@ -2297,7 +2297,7 @@ p.text-muted {
   padding: 15px 0;
 }
 .pcoded-navbar a {
-  color: #a9b7d0;
+  color: #E3EBF2;
 }
 .pcoded-navbar .navbar-content,
 .pcoded-navbar .navbar-wrapper {
